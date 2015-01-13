@@ -1,9 +1,11 @@
 
 package org.usfirst.frc.team5066.robot;
 
+import org.salinerobotics.library.SingularityDrive;
+
 import edu.wpi.first.wpilibj.IterativeRobot;
 import edu.wpi.first.wpilibj.Joystick;
-import edu.wpi.first.wpilibj.RobotDrive;
+import edu.wpi.first.wpilibj.RobotDrive; //Unnecessary?
 
 /**
  * The VM is configured to automatically run this class, and to call the
@@ -26,7 +28,7 @@ public class Robot extends IterativeRobot {
 	
     public void robotInit() {
     	drivestick = new Joystick(0);
-    	drive = new RobotDrive(0,1);
+    	drive = new SingularityDrive(0,1);
     }
 
     /**
