@@ -6,6 +6,7 @@ import org.salinerobotics.library.SingularityDrive;
 import edu.wpi.first.wpilibj.IterativeRobot;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.RobotDrive; //Unnecessary?
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 /**
  * The VM is configured to automatically run this class, and to call the
@@ -43,6 +44,7 @@ public class Robot extends IterativeRobot {
      */
     public void teleopPeriodic() {
         drive.arcadeDrive(drivestick);
+        updateSmartDashboard();
     }
     
     /**
@@ -52,4 +54,7 @@ public class Robot extends IterativeRobot {
     
     }
     
+    public void updateSmartDashboard() {
+    	SmartDashboard.putNumber("TestNumber", 1);
+    }
 }
