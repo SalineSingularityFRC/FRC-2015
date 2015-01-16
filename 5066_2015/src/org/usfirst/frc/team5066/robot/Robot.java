@@ -1,6 +1,9 @@
 
 package org.usfirst.frc.team5066.robot;
 
+import java.io.IOException;
+import java.util.Properties;
+
 import org.salinerobotics.library.SingularityDrive;
 import org.salinerobotics.library.SingularityReader;
 
@@ -21,13 +24,25 @@ public class Robot extends IterativeRobot {
      * This function is run when the robot is first started up and should be
      * used for any initialization code.
      */
+	
+	//ports for each motor. To be replaced by property file values
 	final int LEFT_MOTOR_PORT = 0;
 	final int RIGHT_MOTOR_PORT = 1;
 	final int DRIVE_STICK_PORT = 0;
 	
+	//values read from properties file
+	int testA;
+	int testB;
+	int testC;
+	int testD;
+	
+	//object initializations
 	Joystick drivestick;
 	RobotDrive drive;
 	SmartDashboard dash;
+	Properties prop;
+	
+	
     public void robotInit() {
     	drivestick = new Joystick(0);
     	drive = new SingularityDrive(0,1);
@@ -50,7 +65,19 @@ public class Robot extends IterativeRobot {
     
     public void testInit() {
     	SingularityReader propReader = new SingularityReader();
-    	//propReader.readProperties("config.properties");
+    	
+    	//gets an instance of the properties object, representing the properties file
+    	try {
+			prop = propReader.readProperties("config.properties");
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+    	
+    	testA = Integer.parseInt(prop.getProperty("testA"));
+    	testB = Integer.parseInt(prop.getProperty("testB"));
+    	testC = Integer.parseInt(prop.getProperty("testC"));
+    	testD = Integer.parseInt(prop.getProperty("testD"));
+    	
     }
     
     /**
@@ -61,9 +88,9 @@ public class Robot extends IterativeRobot {
     }
     
     public void updateSmartDashboard() {
-    	SmartDashboard.putNumber("TestA", 1);
-    	SmartDashboard.putNumber("TestB", 1);
-    	SmartDashboard.putNumber("TestC", 1);
-    	SmartDashboard.putNumber("TestD", 1);
+    	SmartDashboard.putNumber("TestA", testA);
+    	SmartDashboard.putNumber("TestB", testB);
+    	SmartDashboard.putNumber("TestC", testC);
+    	SmartDashboard.putNumber("TestD", testD);
     }
 }
