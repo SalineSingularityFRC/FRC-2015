@@ -2,6 +2,7 @@
 package org.usfirst.frc.team5066.robot;
 
 import org.salinerobotics.library.SingularityDrive;
+import org.salinerobotics.library.SingularityReader;
 
 import edu.wpi.first.wpilibj.IterativeRobot;
 import edu.wpi.first.wpilibj.Joystick;
@@ -26,7 +27,7 @@ public class Robot extends IterativeRobot {
 	
 	Joystick drivestick;
 	RobotDrive drive;
-	
+	SmartDashboard dash;
     public void robotInit() {
     	drivestick = new Joystick(0);
     	drive = new SingularityDrive(0,1);
@@ -47,14 +48,22 @@ public class Robot extends IterativeRobot {
         updateSmartDashboard();
     }
     
+    public void testInit() {
+    	SingularityReader propReader = new SingularityReader();
+    	//propReader.readProperties("config.properties");
+    }
+    
     /**
      * This function is called periodically during test mode
      */
     public void testPeriodic() {
-    
+        updateSmartDashboard();
     }
     
     public void updateSmartDashboard() {
-    	SmartDashboard.putNumber("TestNumber", 1);
+    	SmartDashboard.putNumber("TestA", 1);
+    	SmartDashboard.putNumber("TestB", 1);
+    	SmartDashboard.putNumber("TestC", 1);
+    	SmartDashboard.putNumber("TestD", 1);
     }
 }
