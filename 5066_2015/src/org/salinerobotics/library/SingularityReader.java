@@ -15,22 +15,13 @@ public class SingularityReader {
 		
 		Properties prop = new Properties();
 		String propURL = propFileURL;
-		FileInputStream file;
+		FileInputStream fileInputStream;
 		
 		//loads properties file. Tutorial found on : http://stackoverflow.com/questions/8775303/read-properties-file-outside-jar-file
-		file = new FileInputStream(propURL);
-		prop.load(file);
-		file.close();
+		fileInputStream = new FileInputStream(propURL);
+		prop.load(fileInputStream);
+		fileInputStream.close();
 		
-		/*
-		InputStream inputStream = getClass().getClassLoader().getResourceAsStream(propURL);
-		if (inputStream != null) {
-			prop.load(inputStream);
-		} else {
-			throw new FileNotFoundException("property file " + propFileName + "not found");
-		}
-		*/
-		//Enumeration<Object> elements = prop.elements();
 		return prop;
 		
 	}

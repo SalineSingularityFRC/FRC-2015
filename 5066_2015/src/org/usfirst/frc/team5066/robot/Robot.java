@@ -37,6 +37,9 @@ public class Robot extends IterativeRobot {
 	int testC;
 	int testD;
 	
+	boolean squaredInputs;
+	boolean reInitSmartDashboard;
+	
 	double sensitivity;
 	//object initializations
 	BuiltInAccelerometer accel;
@@ -50,6 +53,7 @@ public class Robot extends IterativeRobot {
     	drivestick = new Joystick(0);
     	drive = new SingularityDrive(0,1);
     	accel = new BuiltInAccelerometer(Range.k4G);
+    	initSmartDashboard();
     }
 
     /**
@@ -69,12 +73,11 @@ public class Robot extends IterativeRobot {
     
     public void teleopPeriodic() {
         updateSmartDashboard();
-        drive.arcadeDrive(drivestick, false, sensitivity);
+        drive.arcadeDrive(drivestick, squaredInputs, sensitivity);
     }
     
     public void testInit() {
     	readProperties();
-    	
     }
     
     /**
@@ -86,12 +89,37 @@ public class Robot extends IterativeRobot {
     
     //Below here are methods we made ourselves
     
+    public void initSmartDashboard() {
+    	SmartDashboard.putNumber("Accelerometer X", accel.getX());
+    	SmartDashboard.putNumber("Accelerometer Y", accel.getY());
+    	SmartDashboard.putNumber("Accelerometer Z", accel.getZ());
+    	SmartDashboard.putNumber("Sensitivity", 0.8);
+    	SmartDashboard.putBoolean("Squared Inputs", true);
+    	SmartDashboard.putBoolean("Re-initialize SmartDashboard", false);
+    }
+    
     public void updateSmartDashboard() {
+    	
     	SmartDashboard.putNumber("Accelerometer X", accel.getX());
     	SmartDashboard.putNumber("Accelerometer Y", accel.getY());
     	SmartDashboard.putNumber("Accelerometer Z", accel.getZ());
     	sensitivity = SmartDashboard.getNumber("Sensitivity");
-    	
+    	squaredInputs = SmartDashboard.getBoolean("Squared Inputs");
+    	reInitSmartDashboard = SmartDashboard.getBoolean("Re-initialize SmartDashboard");
+
+		if (sensitivity > 1) {
+			sensitivity = 1;
+	    	SmartDashboard.putNumber("Sensitivity", 1);
+		}
+		if (sensitivity < -1) {
+			sensitivity = -1;
+	    	SmartDashboard.putNumber("Sensitivity", -1);
+		}
+		
+    	if(reInitSmartDashboard == true) {
+    		initSmartDashboard();
+    		reInitSmartDashboard = false;
+    	}
     }
     
     public void readProperties() {
