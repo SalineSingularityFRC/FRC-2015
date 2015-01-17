@@ -52,7 +52,7 @@ public class Robot extends IterativeRobot {
      * This function is called periodically during autonomous
      */
     public void autonomousPeriodic() {
-
+    	
     }
 
     /**
@@ -79,6 +79,8 @@ public class Robot extends IterativeRobot {
     public void testPeriodic() {
         updateSmartDashboard();
     }
+    
+    //Below here are methods we made ourselves
     
     public void updateSmartDashboard() {
     	SmartDashboard.putNumber("TestA", testA);
