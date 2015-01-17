@@ -58,25 +58,18 @@ public class Robot extends IterativeRobot {
     /**
      * This function is called periodically during operator control
      */
+    
+    public void teleopInit() {
+    	readProperties();
+    }
+    
     public void teleopPeriodic() {
         drive.arcadeDrive(drivestick);
         updateSmartDashboard();
     }
     
     public void testInit() {
-    	SingularityReader propReader = new SingularityReader();
-    	
-    	//gets an instance of the properties object, representing the properties file
-    	try {
-			prop = propReader.readProperties("config.properties");
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-    	
-    	testA = Integer.parseInt(prop.getProperty("testA"));
-    	testB = Integer.parseInt(prop.getProperty("testB"));
-    	testC = Integer.parseInt(prop.getProperty("testC"));
-    	testD = Integer.parseInt(prop.getProperty("testD"));
+    	readProperties();
     	
     }
     
@@ -92,5 +85,21 @@ public class Robot extends IterativeRobot {
     	SmartDashboard.putNumber("TestB", testB);
     	SmartDashboard.putNumber("TestC", testC);
     	SmartDashboard.putNumber("TestD", testD);
+    }
+    
+    public void readProperties() {
+    	SingularityReader propReader = new SingularityReader();
+    	
+    	//gets an instance of the properties object, representing the properties file
+    	try {
+			prop = propReader.readProperties("/config.properties");
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+    	
+    	testA = Integer.parseInt(prop.getProperty("testA"));
+    	testB = Integer.parseInt(prop.getProperty("testB"));
+    	testC = Integer.parseInt(prop.getProperty("testC"));
+    	testD = Integer.parseInt(prop.getProperty("testD"));
     }
 }
