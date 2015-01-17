@@ -10,7 +10,6 @@ import org.salinerobotics.library.SingularityReader;
 import edu.wpi.first.wpilibj.BuiltInAccelerometer;
 import edu.wpi.first.wpilibj.IterativeRobot;
 import edu.wpi.first.wpilibj.Joystick;
-import edu.wpi.first.wpilibj.RobotDrive; //Unnecessary?
 import edu.wpi.first.wpilibj.interfaces.Accelerometer.Range;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
@@ -38,10 +37,11 @@ public class Robot extends IterativeRobot {
 	int testC;
 	int testD;
 	
+	double sensitivity;
 	//object initializations
 	BuiltInAccelerometer accel;
 	Joystick drivestick;
-	RobotDrive drive;
+	SingularityDrive drive;
 	SmartDashboard dash;
 	Properties prop;
 	
@@ -68,8 +68,8 @@ public class Robot extends IterativeRobot {
     }
     
     public void teleopPeriodic() {
-        drive.arcadeDrive(drivestick);
         updateSmartDashboard();
+        drive.arcadeDrive(drivestick, false, sensitivity);
     }
     
     public void testInit() {
@@ -90,7 +90,8 @@ public class Robot extends IterativeRobot {
     	SmartDashboard.putNumber("Accelerometer X", accel.getX());
     	SmartDashboard.putNumber("Accelerometer Y", accel.getY());
     	SmartDashboard.putNumber("Accelerometer Z", accel.getZ());
-    	SmartDashboard.putNumber("2048", testD);
+    	sensitivity = SmartDashboard.getNumber("Sensitivity");
+    	
     }
     
     public void readProperties() {

@@ -9,12 +9,23 @@ public class SingularityDrive extends RobotDrive{
 		super(leftMotorChannel, rightMotorChannel);
 	}
 	
-	 public void arcadeDrive(GenericHID stick, boolean squaredInputs) {
-	     // simply call the full-featured arcadeDrive with the appropriate values
-	     super.arcadeDrive(stick.getY(), stick.getX() * -1, squaredInputs);
-	 }
+	public void arcadeDrive(GenericHID stick, boolean squaredInputs, double sensitivity) {
+		if (sensitivity > 1) {
+			sensitivity = 1;
+		}
+		if (sensitivity < -1) {
+			sensitivity = -1;
+		}
+	    super.arcadeDrive(sensitivity * stick.getY(), sensitivity * stick.getX() * -1, squaredInputs);
+	}
+	
+	public void arcadeDrive(GenericHID stick, boolean squaredInputs) {
+	    // simply call the full-featured arcadeDrive with the appropriate values
+		super.arcadeDrive(stick.getY(), stick.getX() * -1, squaredInputs);
+	}
 
-	 public void arcadeDrive(GenericHID stick) {
-	        this.arcadeDrive(stick, true);
-     }
+	public void arcadeDrive(GenericHID stick) {
+	       this.arcadeDrive(stick, true);
+    }
+	 
 }
