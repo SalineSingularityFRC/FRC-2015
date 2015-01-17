@@ -7,9 +7,11 @@ import java.util.Properties;
 import org.salinerobotics.library.SingularityDrive;
 import org.salinerobotics.library.SingularityReader;
 
+import edu.wpi.first.wpilibj.BuiltInAccelerometer;
 import edu.wpi.first.wpilibj.IterativeRobot;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.RobotDrive; //Unnecessary?
+import edu.wpi.first.wpilibj.interfaces.Accelerometer.Range;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 /**
@@ -37,6 +39,7 @@ public class Robot extends IterativeRobot {
 	int testD;
 	
 	//object initializations
+	BuiltInAccelerometer accel;
 	Joystick drivestick;
 	RobotDrive drive;
 	SmartDashboard dash;
@@ -46,6 +49,7 @@ public class Robot extends IterativeRobot {
     public void robotInit() {
     	drivestick = new Joystick(0);
     	drive = new SingularityDrive(0,1);
+    	accel = new BuiltInAccelerometer(Range.k4G);
     }
 
     /**
@@ -83,10 +87,10 @@ public class Robot extends IterativeRobot {
     //Below here are methods we made ourselves
     
     public void updateSmartDashboard() {
-    	SmartDashboard.putNumber("TestA", testA);
-    	SmartDashboard.putNumber("TestB", testB);
-    	SmartDashboard.putNumber("TestC", testC);
-    	SmartDashboard.putNumber("TestD", testD);
+    	SmartDashboard.putNumber("Accelerometer X", accel.getX());
+    	SmartDashboard.putNumber("Accelerometer Y", accel.getY());
+    	SmartDashboard.putNumber("Accelerometer Z", accel.getZ());
+    	SmartDashboard.putNumber("2048", testD);
     }
     
     public void readProperties() {
