@@ -1,11 +1,12 @@
-package org.salinerobotics.library;
+package src.org.salinerobotics.library;
 
 //import apache
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 public class SingularityLogger {
-	//SmartDashboard();
-	public static void main(String[] args) {
-		SmartDashboard.putNumber("test", 0);
+	//Use log(Log Level, Message);
+	public static void log(String args,String args2) {
+		
+		SmartDashboard.putString("test", "["+args+"] "+args2+".");
 	}
 }
