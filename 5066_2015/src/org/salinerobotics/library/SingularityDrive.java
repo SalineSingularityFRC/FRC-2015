@@ -27,5 +27,5 @@ public class SingularityDrive extends RobotDrive{
 	public void arcadeDrive(GenericHID stick) {
 	       this.arcadeDrive(stick, true);
     }
-	 
+	
 }
