@@ -1,4 +1,4 @@
-package src.org.salinerobotics.library;
+package org.salinerobotics.library;
 
 //import apache
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
