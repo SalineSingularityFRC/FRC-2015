@@ -1,9 +1,12 @@
 package org.usfirst.frc.team5066.robot;
 
+import edu.wpi.first.wpilibj.CameraServer;
 import edu.wpi.first.wpilibj.IterativeRobot;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.RobotDrive;
 import edu.wpi.first.wpilibj.Talon;
+import org.salinerobotics.library.SingularityDrive;
+import org.salinerobotics.library.SingularityReader;
 
 /**
  * The VM is configured to automatically run this class, and to call the
@@ -18,20 +21,31 @@ public class Robot extends IterativeRobot {
 	 * used for any initialization code.
 	 */
 
-	final double MULTIPLIER = .5;
+	final double MULTIPLIER = 1;
 
 	Joystick js;
+
 	RobotDrive rd;
 	Talon backLeft, backRight, frontLeft, frontRight;
+	private SingularityReader sr;
+	private CameraServer cs;
+
+	SingularityDrive sd;
 
 	public void robotInit() {
+		// Initialize input controls
 		js = new Joystick(0);
-
-		backLeft = new Talon(2);
-		backRight = new Talon(5);
-		frontLeft = new Talon(6);
-		frontRight = new Talon(7);
-
+		cs = CameraServer.getInstance();
+		cs.setQuality(50);
+		cs.startAutomaticCapture("cam0");
+		sr = new SingularityReader();
+		// Initialize TalonSRs by channel numbers.
+		/*
+		 * backLeft = new Talon(2); backRight = new Talon(5); frontLeft = new
+		 * Talon(6); frontRight = new Talon(7);
+		 */
+		sd = new SingularityDrive(7, 5, 6, 2);
+		// Initialize a robot drive. We probably won't use this.
 		rd = new RobotDrive(frontLeft, backLeft, frontRight, backRight);
 	}
 
@@ -45,8 +59,11 @@ public class Robot extends IterativeRobot {
 	 * This function is called periodically during operator control
 	 */
 	public void teleopPeriodic() {
-		rd.mecanumDrive_Cartesian(js.getX() * MULTIPLIER, js.getY()
-				* MULTIPLIER, js.getZ() * MULTIPLIER, 0);
+		// rd.mecanumDrive_Cartesian(js.getX() * MULTIPLIER, -js.getY()
+		// * MULTIPLIER, js.getZ() * MULTIPLIER, 0);
+
+		// Test stuff.
+		sd.driveMecanum(js, .7, .5);
 	}
 
 	/**
@@ -54,18 +71,5 @@ public class Robot extends IterativeRobot {
 	 */
 	public void testPeriodic() {
 
-	}
-
-	public static void driveMecanum(Joystick js, Talon frontRight,
-			Talon backRight, Talon frontLeft, Talon backLeft, double multiplier) {
-		double magnitude = Math.sqrt(js.getX() * js.getX() + js.getY()
-				+ js.getY()) * multiplier,
-				direction = Math.atan(js.getY() / js.getX())
-				+ (js.getX() > 0 ? Math.PI : 0);
-
-		frontLeft.set(magnitude * Math.sin(direction + Math.PI / 4));
-		backLeft.set(magnitude * Math.cos(direction + Math.PI / 4));
-		frontRight.set(magnitude * Math.cos(direction + Math.PI / 4));
-		backRight.set(magnitude * Math.sin(direction   + Math.PI / 4));
 	}
 }
