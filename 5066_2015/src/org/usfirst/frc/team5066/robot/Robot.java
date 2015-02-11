@@ -59,7 +59,7 @@ public class Robot extends IterativeRobot {
 		us = new Ultrasonic(1,0);
 		us.setEnabled(true);
 		
-		intake = new Intake(0,1);
+		intake = new Intake(intakeLeft, intakeRight);
 		
 		// Initialize the camera, and start taking video
 		cs = CameraServer.getInstance();
@@ -87,6 +87,12 @@ public class Robot extends IterativeRobot {
 			SmartDashboard.putNumber("Is enabled",1);
 			
 		}
+		
+		if(jsb2.get() == true) {
+			intake.set(0.4);
+		}
+		else
+			intake.set(0.0);
 		
 		
 	}
