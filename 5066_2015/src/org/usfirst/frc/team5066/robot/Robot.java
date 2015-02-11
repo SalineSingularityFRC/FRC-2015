@@ -1,5 +1,8 @@
 package org.usfirst.frc.team5066.robot;
 
+import java.io.IOException;
+import java.util.Properties;
+
 import edu.wpi.first.wpilibj.buttons.JoystickButton;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj.CameraServer;
@@ -10,6 +13,7 @@ import edu.wpi.first.wpilibj.Talon;
 import edu.wpi.first.wpilibj.Ultrasonic;
 
 import org.salinerobotics.library.SingularityDrive;
+import org.salinerobotics.library.SingularityReader;
 
 /**
  * The VM is configured to automatically run this class, and to call the
@@ -28,7 +32,8 @@ public class Robot extends IterativeRobot {
 
 	final double MULTIPLIER = 1;
 	
-	int backLeft, backRight, frontLeft, frontRight, intakeLeft, intakeRight;
+	private int backLeft, backRight, frontLeft, frontRight, intakeLeft, intakeRight, cameraQuality;
+	private String cameraPort;
 	
 	Ultrasonic us;
 	Joystick js;
@@ -38,36 +43,51 @@ public class Robot extends IterativeRobot {
 	Intake intake;
 	private CameraServer cs;
 
-	SingularityDrive sd;
+	private SingularityDrive sd;
+	private SingularityReader sr;
+	private String propFileURL = "build.properties";
 
 	public void robotInit() {
+		sr = new SingularityReader();
+		try {
+			applyProperties(sr.readProperties(propFileURL));
+		} catch (IOException e) {
+			System.out.println("Failed to load properties file, loading defaults");
+			
+			//Ports
+			frontLeft = 7;
+			backLeft = 5;
+			frontRight = 6;
+			backLeft = 2;
+			intakeLeft = 2;
+			intakeRight = 5;
 		
-		//Ports
-		frontLeft = 7;
-		backLeft = 5;
-		frontRight = 6;
-		backLeft = 2;
-		intakeLeft = 0;
-		intakeRight = 1;
+			// Initialize input controls
+			js = new Joystick(0);
+			jsb2 = new JoystickButton(js, 2);
+			jsb5 = new JoystickButton(js, 5);
+			jsb6 = new JoystickButton(js, 6);
+			jsb7 = new JoystickButton(js, 7);
+			us = new Ultrasonic(1,0);
+			us.setEnabled(true);
 		
-		// Initialize input controls
-		js = new Joystick(0);
-		jsb2 = new JoystickButton(js, 2);
-		jsb5 = new JoystickButton(js, 5);
-		jsb6 = new JoystickButton(js, 6);
-		jsb7 = new JoystickButton(js, 7);
-		us = new Ultrasonic(1,0);
-		us.setEnabled(true);
+			
 		
+			// Initialize the camera properties
+			cameraQuality = 100;
+			cameraPort = "cam0";
+		}
+		
+		//initialize the intake properties
 		intake = new Intake(intakeLeft, intakeRight);
-		
 		// Initialize the camera, and start taking video
 		cs = CameraServer.getInstance();
-		cs.setQuality(100);
-		cs.startAutomaticCapture("cam0");
-
+		cs.setQuality(cameraQuality);
+		cs.startAutomaticCapture(cameraPort);
 		sd = new SingularityDrive(frontLeft, backLeft, frontRight, backRight);
 	}
+
+
 
 	/**
 	 * This function is called periodically during autonomous
@@ -106,4 +126,33 @@ public class Robot extends IterativeRobot {
 		sd.tester(6, jsb6.get());
 		sd.tester(7, jsb7.get());
 	}
+	
+	/**
+	 * Applies values from the properties file that is returned as a Map of properties
+	 * 
+	 * @param prop - Map of properties
+	 */
+	private void applyProperties(Properties prop) {
+		//TODO: return to default ports
+		//Port
+		frontLeft = Integer.parseInt(prop.getProperty("talonFrontLeft"));
+		backLeft = Integer.parseInt(prop.getProperty("talonBackLeft"));
+		frontRight = Integer.parseInt(prop.getProperty("talonFrontRight"));
+		backLeft = Integer.parseInt(prop.getProperty("talonBackLeft"));
+		intakeLeft = Integer.parseInt(prop.getProperty("intakeLeft"));
+		intakeRight = Integer.parseInt(prop.getProperty("intakeRight"));
+	
+		// Initialize input controls
+		js = new Joystick(0);
+		jsb2 = new JoystickButton(js, 2);
+		jsb5 = new JoystickButton(js, 5);
+		jsb6 = new JoystickButton(js, 6);
+		jsb7 = new JoystickButton(js, 7);
+		us = new Ultrasonic(1,0);
+		us.setEnabled(true);
+		
+		cameraQuality = Integer.parseInt(prop.getProperty("cameraQuality"));
+		cameraPort = prop.getProperty("camID");
+	}
+	
 }

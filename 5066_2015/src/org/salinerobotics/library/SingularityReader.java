@@ -22,7 +22,7 @@ public class SingularityReader {
 		fileInputStream.close();
 		
 		return prop;
-		
 	}
+	
 	
 }
