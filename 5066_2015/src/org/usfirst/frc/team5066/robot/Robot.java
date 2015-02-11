@@ -45,7 +45,7 @@ public class Robot extends IterativeRobot {
 
 	private SingularityDrive sd;
 	private SingularityReader sr;
-	private String propFileURL = "build.properties";
+	private final String propFileURL = "/build.properties";
 
 	public void robotInit() {
 		sr = new SingularityReader();
@@ -70,20 +70,23 @@ public class Robot extends IterativeRobot {
 			jsb7 = new JoystickButton(js, 7);
 			us = new Ultrasonic(1,0);
 			us.setEnabled(true);
-		
+
 			
 		
 			// Initialize the camera properties
-			cameraQuality = 100;
+			cameraQuality = 50;
 			cameraPort = "cam0";
 		}
+		//TODO delete Vision_2015
+		Camera2015 cam = new Camera2015(cameraPort, cameraQuality);
+		cam.initCameraForProcessing();
 		
 		//initialize the intake properties
 		intake = new Intake(intakeLeft, intakeRight);
 		// Initialize the camera, and start taking video
-		cs = CameraServer.getInstance();
-		cs.setQuality(cameraQuality);
-		cs.startAutomaticCapture(cameraPort);
+//		cs = CameraServer.getInstance();
+//		cs.setQuality(cameraQuality);
+//		cs.startAutomaticCapture(cameraPort);
 		sd = new SingularityDrive(frontLeft, backLeft, frontRight, backRight);
 	}
 
