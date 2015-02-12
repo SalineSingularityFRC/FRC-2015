@@ -5,6 +5,7 @@ import java.util.Properties;
 
 import edu.wpi.first.wpilibj.buttons.JoystickButton;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.wpilibj.AnalogTrigger;
 import edu.wpi.first.wpilibj.CameraServer;
 import edu.wpi.first.wpilibj.IterativeRobot;
 import edu.wpi.first.wpilibj.Joystick;
@@ -45,7 +46,8 @@ public class Robot extends IterativeRobot {
 
 	private SingularityDrive sd;
 	private SingularityReader sr;
-	private final String propFileURL = "/build.properties";
+	private final String propFileURL = "/resources/config.properties";
+	AnalogTrigger at;
 
 	public void robotInit() {
 		sr = new SingularityReader();
@@ -55,10 +57,11 @@ public class Robot extends IterativeRobot {
 			System.out.println("Failed to load properties file, loading defaults");
 			
 			//Ports
+			
 			frontLeft = 7;
 			backLeft = 5;
 			frontRight = 6;
-			backLeft = 2;
+			backLeft = 4;
 			intakeLeft = 2;
 			intakeRight = 5;
 		
@@ -70,6 +73,8 @@ public class Robot extends IterativeRobot {
 			jsb7 = new JoystickButton(js, 7);
 			us = new Ultrasonic(1,0);
 			us.setEnabled(true);
+			
+			
 
 			
 		
@@ -79,7 +84,7 @@ public class Robot extends IterativeRobot {
 		}
 		//TODO delete Vision_2015
 		Camera2015 cam = new Camera2015(cameraPort, cameraQuality);
-		cam.initCameraForProcessing();
+		cam.startSimpleCamera();
 		
 		//initialize the intake properties
 		intake = new Intake(intakeLeft, intakeRight);
@@ -102,21 +107,22 @@ public class Robot extends IterativeRobot {
 	 * This function is called periodically during operator control
 	 */
 	public void teleopPeriodic() {
-		SmartDashboard.putNumber("Is enabled",0);
+		//SmartDashboard.putNumber("Is enabled",0);
 		sd.driveMecanum(js, .35 * (1 - js.getThrottle()), .25 * (1 - js.getThrottle()));
-		SmartDashboard.putNumber("Ultrasonic Range Inches", us.getRangeInches());
-		SmartDashboard.putNumber("Ultrasonic Range MM", us.getRangeMM());
-		if(us.isEnabled()){
-			SmartDashboard.putNumber("Is enabled",1);
+		//SmartDashboard.putNumber("Ultrasonic Range Inches", us.getRangeInches());
+		//SmartDashboard.putNumber("Ultrasonic Range MM", us.getRangeMM());
+		//if(us.isEnabled()){
+			//SmartDashboard.putNumber("Is enabled",1);
 			
-		}
+		//}
 		
+		/*
 		if(jsb2.get() == true) {
 			intake.set(0.4);
 		}
 		else
 			intake.set(0.0);
-		
+		*/
 		
 	}
 

@@ -16,8 +16,8 @@ public class Camera2015 {
 	int session;
 	int camQuality;
 	public Camera2015(String camName, int camQuality) {
-		camName = this.camName;
-		camQuality = this.camQuality;
+		this.camName = camName;
+		this.camQuality = camQuality;
 	}
 	
 	public void startSimpleCamera() {
