@@ -6,11 +6,9 @@ import java.util.Properties;
 import edu.wpi.first.wpilibj.buttons.JoystickButton;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj.AnalogTrigger;
-import edu.wpi.first.wpilibj.CameraServer;
 import edu.wpi.first.wpilibj.IterativeRobot;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.RobotDrive;
-import edu.wpi.first.wpilibj.Talon;
 import edu.wpi.first.wpilibj.Ultrasonic;
 
 import org.salinerobotics.library.SingularityDrive;
@@ -32,17 +30,17 @@ public class Robot extends IterativeRobot {
 	 */
 
 	final double MULTIPLIER = 1;
-	
-	private int backLeft, backRight, frontLeft, frontRight, intakeLeft, intakeRight, cameraQuality;
+
+	private int backLeft, backRight, frontLeft, frontRight, intakeLeft,
+			intakeRight, cameraQuality;
 	private String cameraPort;
-	
+
 	Ultrasonic us;
 	Joystick js;
 	JoystickButton jsb2, jsb5, jsb6, jsb7;
 
 	RobotDrive rd;
 	Intake intake;
-	private CameraServer cs;
 
 	private SingularityDrive sd;
 	private SingularityReader sr;
@@ -50,53 +48,51 @@ public class Robot extends IterativeRobot {
 	AnalogTrigger at;
 
 	RangeFinder rf;
-	
+
 	public void robotInit() {
 		sr = new SingularityReader();
 		try {
 			applyProperties(sr.readProperties(propFileURL));
 		} catch (IOException e) {
-			System.out.println("Failed to load properties file, loading defaults");
-			
-			//Ports
-			
+			System.out
+					.println("Failed to load properties file, loading defaults");
+
+			// Ports
+
 			frontLeft = 7;
 			backLeft = 5;
 			frontRight = 6;
 			backLeft = 4;
 			intakeLeft = 2;
 			intakeRight = 5;
-		
+
 			// Initialize input controls
 			js = new Joystick(0);
 			jsb2 = new JoystickButton(js, 2);
 			jsb5 = new JoystickButton(js, 5);
 			jsb6 = new JoystickButton(js, 6);
 			jsb7 = new JoystickButton(js, 7);
-			us = new Ultrasonic(1,0);
+			us = new Ultrasonic(1, 0);
 			us.setEnabled(true);
-			
-			
+
 			// Initialize the camera properties
 			cameraQuality = 50;
 			cameraPort = "cam0";
-			
+
 			rf = new RangeFinder(0);
 		}
-		//TODO delete Vision_2015
+		// TODO delete Vision_2015
 		Camera2015 cam = new Camera2015(cameraPort, cameraQuality);
 		cam.startSimpleCamera();
-		
-		//initialize the intake properties
+
+		// initialize the intake properties
 		intake = new Intake(intakeLeft, intakeRight);
 		// Initialize the camera, and start taking video
-//		cs = CameraServer.getInstance();
-//		cs.setQuality(cameraQuality);
-//		cs.startAutomaticCapture(cameraPort);
+		// cs = CameraServer.getInstance();
+		// cs.setQuality(cameraQuality);
+		// cs.startAutomaticCapture(cameraPort);
 		sd = new SingularityDrive(frontLeft, backLeft, frontRight, backRight);
 	}
-
-
 
 	/**
 	 * This function is called periodically during autonomous
@@ -108,62 +104,59 @@ public class Robot extends IterativeRobot {
 	 * This function is called periodically during operator control
 	 */
 	public void teleopPeriodic() {
-		//SmartDashboard.putNumber("Is enabled",0);
-		sd.driveMecanum(js, .35 * (1 - js.getThrottle()), .25 * (1 - js.getThrottle()));
-		//SmartDashboard.putNumber("Ultrasonic Range Inches", us.getRangeInches());
-		//SmartDashboard.putNumber("Ultrasonic Range MM", us.getRangeMM());
-		//if(us.isEnabled()){
-			//SmartDashboard.putNumber("Is enabled",1);
-			
-		//}
-		
+		// SmartDashboard.putNumber("Is enabled",0);
+		sd.driveMecanum(js, .35 * (1 - js.getThrottle()),
+				.25 * (1 - js.getThrottle()));
+		// SmartDashboard.putNumber("Ultrasonic Range Inches",
+		// us.getRangeInches());
+		// SmartDashboard.putNumber("Ultrasonic Range MM", us.getRangeMM());
+		// if(us.isEnabled()){
+		// SmartDashboard.putNumber("Is enabled",1);
+
+		// }
+
 		/*
-		if(jsb2.get() == true) {
-			intake.set(0.4);
-		}
-		else
-			intake.set(0.0);
-		*/
-		
-		SmartDashboard.putNumber("test", rf.findRangeInches());
+		 * if(jsb2.get() == true) { intake.set(0.4); } else intake.set(0.0);
+		 */
+
+		SmartDashboard.putNumber("Inches", rf.findRangeInches());
+		SmartDashboard.putNumber("Straight", rf.findRange(1));
 	}
 
 	/**
 	 * This function is called periodically during test mode
 	 */
 	public void testPeriodic() {
-		sd.tester(2, jsb2.get());
-		sd.tester(5, jsb5.get());
-		sd.tester(6, jsb6.get());
-		sd.tester(7, jsb7.get());
+
 	}
-	
+
 	/**
-	 * Applies values from the properties file that is returned as a Map of properties
+	 * Applies values from the properties file that is returned as a Map of
+	 * properties
 	 * 
-	 * @param prop - Map of properties
+	 * @param prop
+	 *            - Map of properties
 	 */
 	private void applyProperties(Properties prop) {
-		//TODO: return to default ports
-		//Port
+		// TODO: return to default ports
+		// Port
 		frontLeft = Integer.parseInt(prop.getProperty("talonFrontLeft"));
 		backLeft = Integer.parseInt(prop.getProperty("talonBackLeft"));
 		frontRight = Integer.parseInt(prop.getProperty("talonFrontRight"));
 		backLeft = Integer.parseInt(prop.getProperty("talonBackLeft"));
 		intakeLeft = Integer.parseInt(prop.getProperty("intakeLeft"));
 		intakeRight = Integer.parseInt(prop.getProperty("intakeRight"));
-	
+
 		// Initialize input controls
 		js = new Joystick(0);
 		jsb2 = new JoystickButton(js, 2);
 		jsb5 = new JoystickButton(js, 5);
 		jsb6 = new JoystickButton(js, 6);
 		jsb7 = new JoystickButton(js, 7);
-		us = new Ultrasonic(1,0);
+		us = new Ultrasonic(1, 0);
 		us.setEnabled(true);
-		
+
 		cameraQuality = Integer.parseInt(prop.getProperty("cameraQuality"));
 		cameraPort = prop.getProperty("camID");
 	}
-	
 }

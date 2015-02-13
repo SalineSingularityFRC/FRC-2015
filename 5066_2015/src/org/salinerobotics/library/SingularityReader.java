@@ -5,11 +5,6 @@ import java.io.IOException;
 import java.util.Properties;
 
 public class SingularityReader {
-	
-	public SingularityReader() {
-		
-	}
-	
 	public Properties readProperties(String propFileURL) throws IOException{
 		
 		Properties prop = new Properties();
@@ -23,6 +18,4 @@ public class SingularityReader {
 		
 		return prop;
 	}
-	
-	
 }
