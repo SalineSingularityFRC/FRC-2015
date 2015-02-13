@@ -72,8 +72,8 @@ public class SingularityDrive extends RobotDrive {
 				- js.getTwist() * rotationMultiplier);
 		m_frontLeftMotor.set(magnitude * Math.cos(direction + Math.PI / 4)
 				+ js.getTwist() * rotationMultiplier);
-		m_rearLeftMotor.set(-magnitude * Math.sin(direction + Math.PI / 4)
-				+ js.getTwist() * rotationMultiplier);
+		m_rearLeftMotor.set(magnitude * Math.sin(direction + Math.PI / 4)
+				- js.getTwist() * rotationMultiplier);
 	}
 
 	/**

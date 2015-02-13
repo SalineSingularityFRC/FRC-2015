@@ -49,6 +49,8 @@ public class Robot extends IterativeRobot {
 	private final String propFileURL = "/resources/config.properties";
 	AnalogTrigger at;
 
+	RangeFinder rf;
+	
 	public void robotInit() {
 		sr = new SingularityReader();
 		try {
@@ -75,12 +77,11 @@ public class Robot extends IterativeRobot {
 			us.setEnabled(true);
 			
 			
-
-			
-		
 			// Initialize the camera properties
 			cameraQuality = 50;
 			cameraPort = "cam0";
+			
+			rf = new RangeFinder(0);
 		}
 		//TODO delete Vision_2015
 		Camera2015 cam = new Camera2015(cameraPort, cameraQuality);
@@ -124,6 +125,7 @@ public class Robot extends IterativeRobot {
 			intake.set(0.0);
 		*/
 		
+		SmartDashboard.putNumber("test", rf.findRangeInches());
 	}
 
 	/**
