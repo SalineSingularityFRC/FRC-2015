@@ -48,10 +48,41 @@ public class SingularityDrive extends RobotDrive {
 	 *            How quickly to translate (0 - 1)
 	 * @param rotationMultiplier
 	 *            How quickly to rotate (0 - 1)
+	 * @param squaredInputs
+	 *            Uses squared inputs if it's true
 	 */
-
 	public void driveMecanum(Joystick js, double translationMultiplier,
-			double rotationMultiplier) {
+			double rotationMultiplier, boolean squaredInputs) {
+
+		double x = js.getX(), y = js.getY(), z = js.getTwist()
+				* rotationMultiplier;
+
+		// If squaredInputs square the inputs
+		if (squaredInputs) {
+			x *= Math.abs(x);
+			y *= Math.abs(y);
+			z *= Math.abs(z);
+		}
+
+		// Find magnitude using pythagorean theorem
+		double magnitude = Math.sqrt(x * x + y * y) * translationMultiplier;
+
+		// Find direction using arctan
+		double direction = Math.atan(-y / x);
+		if (x < 0) {
+			direction += Math.PI;
+		}
+
+		// Use formulas to set wheel speeds.
+		m_frontRightMotor
+				.set(magnitude * Math.sin(direction + Math.PI / 4) + z);
+		m_rearRightMotor.set(magnitude * Math.cos(direction + Math.PI / 4) - z);
+		m_frontLeftMotor.set(magnitude * Math.cos(direction + Math.PI / 4) + z);
+		m_rearLeftMotor.set(magnitude * Math.sin(direction + Math.PI / 4) - z);
+	}
+
+	public void oldDriveMecanumOldIsRedundant(Joystick js,
+			double translationMultiplier, double rotationMultiplier) {
 
 		// Find magnitude using pythagorean theorem
 		double magnitude = Math.sqrt(js.getX() * js.getX() + js.getY()

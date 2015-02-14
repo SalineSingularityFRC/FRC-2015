@@ -5,6 +5,8 @@ import java.io.IOException;
 import java.util.Properties;
 
 public class SingularityReader {
+	
+	//properties file creation
 	public Properties readProperties(String propFileURL) throws IOException{
 		
 		Properties prop = new Properties();

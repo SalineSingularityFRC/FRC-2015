@@ -29,13 +29,18 @@ public class Robot extends IterativeRobot {
 	 * used for any initialization code.
 	 */
 
+	
 	final double MULTIPLIER = 1;
 
+	//create integers for ports, intakes, and camera
 	private int backLeft, backRight, frontLeft, frontRight, intakeLeft,
 			intakeRight, cameraQuality;
 	private String cameraPort;
 
+	//create ultrasonic object
 	Ultrasonic us;
+	
+	//create joystick and joystick button objects
 	Joystick js;
 	JoystickButton jsb2, jsb5, jsb6, jsb7;
 
@@ -106,7 +111,7 @@ public class Robot extends IterativeRobot {
 	public void teleopPeriodic() {
 		// SmartDashboard.putNumber("Is enabled",0);
 		sd.driveMecanum(js, .35 * (1 - js.getThrottle()),
-				.25 * (1 - js.getThrottle()));
+				.25 * (1 - js.getThrottle()), true);
 		// SmartDashboard.putNumber("Ultrasonic Range Inches",
 		// us.getRangeInches());
 		// SmartDashboard.putNumber("Ultrasonic Range MM", us.getRangeMM());
@@ -118,16 +123,20 @@ public class Robot extends IterativeRobot {
 		/*
 		 * if(jsb2.get() == true) { intake.set(0.4); } else intake.set(0.0);
 		 */
-
-		SmartDashboard.putNumber("Inches", rf.findRangeInches());
-		SmartDashboard.putNumber("Straight", rf.findRange(1));
+		
+		
+		//  Puts the range using the Ultrasonic sensor into the dashboard in inches		
+		SmartDashboard.putNumber("X1", js.getRawAxis(1));
+		SmartDashboard.putNumber("Y1", -js.getRawAxis(2));
+		SmartDashboard.putNumber("X2", js.getRawAxis(4));
+		SmartDashboard.putNumber("Y2", -js.getRawAxis(5));
+		
 	}
 
 	/**
 	 * This function is called periodically during test mode
 	 */
 	public void testPeriodic() {
-
 	}
 
 	/**
@@ -155,7 +164,8 @@ public class Robot extends IterativeRobot {
 		jsb7 = new JoystickButton(js, 7);
 		us = new Ultrasonic(1, 0);
 		us.setEnabled(true);
-
+		
+		//initialize camera
 		cameraQuality = Integer.parseInt(prop.getProperty("cameraQuality"));
 		cameraPort = prop.getProperty("camID");
 	}
