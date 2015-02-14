@@ -11,6 +11,7 @@ import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.RobotDrive;
 import edu.wpi.first.wpilibj.Ultrasonic;
 
+import org.salinerobotics.library.SingularityController;
 import org.salinerobotics.library.SingularityDrive;
 import org.salinerobotics.library.SingularityReader;
 
@@ -42,6 +43,7 @@ public class Robot extends IterativeRobot {
 	
 	//create joystick and joystick button objects
 	Joystick js;
+	SingularityController xbox;
 	JoystickButton jsb2, jsb5, jsb6, jsb7;
 
 	RobotDrive rd;
@@ -79,6 +81,7 @@ public class Robot extends IterativeRobot {
 			jsb7 = new JoystickButton(js, 7);
 			us = new Ultrasonic(1, 0);
 			us.setEnabled(true);
+			xbox = new SingularityController(js,SingularityController.XBOX);
 
 			// Initialize the camera properties
 			cameraQuality = 50;
