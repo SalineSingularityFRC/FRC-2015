@@ -1,6 +1,6 @@
 package org.usfirst.frc.team5066.robot;
 
-import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import edu.wpi.first.wpilibj.AnalogInput;
@@ -58,34 +58,44 @@ public class RangeFinder {
 	 * @param samples - number of samples to take
 	 * @return - inches of object away from sensor
 	 */
-	public double findRangeInchesSampled(int samples){
-		//TODO sort the list
-		//TODO reminder for Nick to finish the sampler
-		List<Double> sampleList = new ArrayList<Double>();
-		for(int i=0; i<samples; i++){
-			sampleList.add(findRangeInches());
-		}
+	public double findSampledAverage(List<Double> samples){
+		//sort from lowest to highest
+		Collections.sort(samples);
 		//find the median
-		double Q2 = 0;
-		if(sampleList.size()%2==0){
-			//even number
-			double a = sampleList.get((samples/2));
-			double b = sampleList.get((samples/2+1));
-//			Q2 = sampleList.size()/2;
-		}else{
-			//odd number
-			Q2 = sampleList.get((samples/2)-1);
-			
+		double Q1 = getQuartile(samples.subList(0, samples.size()/2));		
+		double Q3 = getQuartile(samples.subList(samples.size()/2,samples.size()));
+		double dropLeft = Q1 -(Q3-Q1);
+		double dropRight = Q3 +(Q3-Q1);
+		
+		double returnValue = 0.0;
+		int size = 0;
+		for(int i=0; i<samples.size(); i++){
+			if(samples.get(i) > dropLeft || samples.get(i) < dropRight){
+				returnValue = returnValue + samples.get(i);
+				size++;
+			}	
+			//if doesn't meeting ignore and continue;
 		}
+		return returnValue/size;
+	}
+	private double getQuartile(List<Double> quartileList){
+		if(quartileList.size()%2==0){
+			//even number
+			return evenQuartile(quartileList);
+		}
+		//odd number
+		return oddQuartile(quartileList);
 		
+	}
+	
+	private double evenQuartile(List<Double> sampleList){
+		double a = sampleList.get((sampleList.size()/2));
+		double b = sampleList.get(((sampleList.size()/2)+1));
+		return (a+b)/2;
 		
-		
-		double Q1 = sampleList.size();
-		
-		double Q3 = sampleList.size();
-		
-		
-		return 0.0;
+	}
+	private double oddQuartile(List<Double> sampleList){
+		return sampleList.get((sampleList.size()/2)-1);
 	}
 	
 	
