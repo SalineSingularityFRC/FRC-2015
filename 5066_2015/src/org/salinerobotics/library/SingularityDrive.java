@@ -105,7 +105,7 @@ public class SingularityDrive extends RobotDrive {
 		m_frontLeftMotor.set(left * translationMultiplier);
 		m_rearLeftMotor.set(left * translationMultiplier);
 		m_frontRightMotor.set(right * translationMultiplier);
-		m_rearLeftMotor.set(right * translationMultiplier);
+		m_rearRightMotor.set(right * translationMultiplier);
 	}
 
 	/**
@@ -135,7 +135,7 @@ public class SingularityDrive extends RobotDrive {
 		m_frontLeftMotor.set(left * translationMultiplier);
 		m_rearLeftMotor.set(left * translationMultiplier);
 		m_frontRightMotor.set(right * translationMultiplier);
-		m_rearLeftMotor.set(right * translationMultiplier);
+		m_rearRightMotor.set(right * translationMultiplier);
 	}
 
 	/**
@@ -165,7 +165,7 @@ public class SingularityDrive extends RobotDrive {
 		m_rearLeftMotor.set(y * translationMultiplier + x * rotationMultiplier);
 		m_frontRightMotor.set(y * translationMultiplier - x
 				* rotationMultiplier);
-		m_rearLeftMotor.set(y * translationMultiplier - x * rotationMultiplier);
+		m_rearRightMotor.set(y * translationMultiplier - x * rotationMultiplier);
 	}
 
 	/**

@@ -59,7 +59,7 @@ public class Robot extends IterativeRobot {
 		try {
 			applyProperties(sr.readProperties(propFileURL));
 		} catch (IOException e) {
-			SmartDashboard.putString("Properties", "Unsuccessful");
+			SmartDashboard.putString("Properties Loaded", "unsuccessfully");
 			System.out
 					.println("Failed to load properties file, loading defaults");
 
@@ -141,8 +141,8 @@ public class Robot extends IterativeRobot {
 		}
 
 		SmartDashboard.putNumber("Z Axis", controller.getZ());
-		SmartDashboard.putNumber("Y Axis", controller.getY());
-		SmartDashboard.putNumber("X Axis", controller.getX());
+		SmartDashboard.putNumber("Y Axis", controller.getLeftY());
+		SmartDashboard.putNumber("X Axis", controller.getLeftX());
 		SmartDashboard.putString("Mode", MODES[mode]);
 	}
 
@@ -168,11 +168,6 @@ public class Robot extends IterativeRobot {
 		backRight = Integer.parseInt(prop.getProperty("talonBackRight"));
 		intakeLeft = Integer.parseInt(prop.getProperty("intakeLeft"));
 		intakeRight = Integer.parseInt(prop.getProperty("intakeRight"));
-		
-		SmartDashboard.putNumber("frontLeft", frontLeft);
-		SmartDashboard.putNumber("frontRight", frontRight);
-		SmartDashboard.putNumber("backLeft", backLeft);
-		SmartDashboard.putNumber("backRight", backRight);
 
 		// Initialize input controls
 		js = new Joystick(0);
@@ -183,6 +178,6 @@ public class Robot extends IterativeRobot {
 		cameraQuality = Integer.parseInt(prop.getProperty("cameraQuality"));
 		cameraPort = prop.getProperty("camID");
 
-		SmartDashboard.putString("Properties", "Successful");
+		SmartDashboard.putString("Properties Loaded", "successfully");
 	}
 }

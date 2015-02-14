@@ -41,7 +41,7 @@ public class SingularityController {
 		case LOGITECH:
 			return joystick.getX();
 		case XBOX:
-			return joystick.getRawAxis(1);
+			return joystick.getRawAxis(0);
 		default:
 			return 0;
 		}
@@ -52,7 +52,7 @@ public class SingularityController {
 		case LOGITECH:
 			return joystick.getY();
 		case XBOX:
-			return -joystick.getRawAxis(2);
+			return -joystick.getRawAxis(1);
 		default:
 			return 0;
 		}
@@ -83,9 +83,9 @@ public class SingularityController {
 	public boolean getStart() {
 		switch (type) {
 		case LOGITECH:
-			return (new JoystickButton(joystick, 1)).get();
+			return joystick.getRawButton(1);
 		case XBOX:
-			return (new JoystickButton(joystick, 8)).get();
+			return joystick.getRawButton(8);
 		default:
 			return false;
 		}
@@ -94,9 +94,9 @@ public class SingularityController {
 	public boolean getA() {
 		switch (type) {
 		case LOGITECH:
-			return (new JoystickButton(joystick, 1)).get();
+			return joystick.getRawButton(1);
 		case XBOX:
-			return (new JoystickButton(joystick, 1)).get();
+			return joystick.getRawButton(1);
 		default:
 			return false;
 		}
