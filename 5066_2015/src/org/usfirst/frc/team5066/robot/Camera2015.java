@@ -15,6 +15,7 @@ public class Camera2015 {
 	Image frame;
 	int session;
 	int camQuality;
+	
 	public Camera2015(String camName, int camQuality) {
 		this.camName = camName;
 		this.camQuality = camQuality;
@@ -37,6 +38,7 @@ public class Camera2015 {
 	}
 	
 	public void processImages() {
+		
         NIVision.IMAQdxStartAcquisition(session);
         
         NIVision.Rect rect = new NIVision.Rect(10, 10, 100, 100);
