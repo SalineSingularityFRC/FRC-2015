@@ -1,5 +1,6 @@
 package org.usfirst.frc.team5066.robot;
 
+import java.io.Console;
 import java.util.Collections;
 import java.util.List;
 
@@ -60,6 +61,14 @@ public class RangeFinder {
 	 */
 	public double findSampledAverage(List<Double> samples){
 		//sort from lowest to highest
+		
+		if(samples.isEmpty()){
+			System.out.println("Can't find sampleing list");
+			return 0;
+		}
+		if(samples.size()==1){
+			return samples.get(0);
+		}
 		Collections.sort(samples);
 		//find the median
 		double Q1 = getQuartile(samples.subList(0, samples.size()/2));		
