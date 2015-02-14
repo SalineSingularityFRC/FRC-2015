@@ -133,6 +133,29 @@ public class SingularityDrive extends RobotDrive {
 	}
 
 	/**
+	 * 
+	 * @param controller @SingularityController to use
+	 * @param translationMultiplier How much power to go forwards/backwards
+	 * @param rotationMultiplier How much power to rotate
+	 * @param squaredInputs Squared inputs or not
+	 */
+	public void arcadeDrive(SingularityController controller,
+			double translationMultiplier, double rotationMultiplier,
+			boolean squaredInputs) {
+		double x = controller.getX(), y = controller.getY();
+		
+		if (squaredInputs) {
+			x *= Math.abs(x);
+			y *= Math.abs(y);
+		}
+
+		m_frontLeftMotor.set(y * translationMultiplier + x * rotationMultiplier);
+		m_rearLeftMotor.set(y * translationMultiplier + x * rotationMultiplier);
+		m_frontRightMotor.set(y * translationMultiplier - x * rotationMultiplier);
+		m_rearLeftMotor.set(y * translationMultiplier - x * rotationMultiplier);
+	}
+
+	/**
 	 * Old version of mecanum drive. Only for backup purposes.
 	 */
 	public void oldDriveMecanumOldIsRedundant(Joystick js,
