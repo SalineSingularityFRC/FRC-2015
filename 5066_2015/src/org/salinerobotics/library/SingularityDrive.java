@@ -6,7 +6,6 @@ import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.RobotDrive;
 
 public class SingularityDrive extends RobotDrive {
-
 	public SingularityDrive(int leftMotorChannel, int rightMotorChannel) {
 		super(leftMotorChannel, rightMotorChannel);
 	}
@@ -51,11 +50,12 @@ public class SingularityDrive extends RobotDrive {
 	 * @param squaredInputs
 	 *            Uses squared inputs if it's true
 	 */
-	public void driveMecanum(Joystick js, double translationMultiplier,
-			double rotationMultiplier, boolean squaredInputs) {
+	public void driveMecanum(SingularityController controller,
+			double translationMultiplier, double rotationMultiplier,
+			boolean squaredInputs) {
 
-		double x = js.getX(), y = js.getY(), z = js.getTwist()
-				* rotationMultiplier;
+		double x = controller.getX(), y = controller.getY(), z = controller
+				.getZ() * rotationMultiplier;
 
 		// If squaredInputs square the inputs
 		if (squaredInputs) {
@@ -81,6 +81,96 @@ public class SingularityDrive extends RobotDrive {
 		m_rearLeftMotor.set(magnitude * Math.sin(direction + Math.PI / 4) - z);
 	}
 
+	/**
+	 * Tank drive using one controller with two joysticks (i.e. use an XBox
+	 * controller if you want to do anything useful)
+	 * 
+	 * @param controller
+	 *            XBox controller to use. Will not be okay if you use a logitech
+	 *            one.
+	 * @param translationMultiplier
+	 *            How much power to use
+	 * @param squaredInputs
+	 *            Squared inputs or not.
+	 */
+	public void tankDrive(SingularityController controller,
+			double translationMultiplier, boolean squaredInputs) {
+		double left = controller.getLeftY(), right = controller.getRightY();
+
+		if (squaredInputs) {
+			left *= Math.abs(left);
+			right *= Math.abs(right);
+		}
+
+		m_frontLeftMotor.set(left * translationMultiplier);
+		m_rearLeftMotor.set(left * translationMultiplier);
+		m_frontRightMotor.set(right * translationMultiplier);
+		m_rearRightMotor.set(right * translationMultiplier);
+	}
+
+	/**
+	 * Tank drive using two joystick inputs (can be XBox controllers if you want
+	 * to do it the stupid way...)
+	 * 
+	 * 
+	 * @param controller1
+	 *            Logitech (or XBox controller) to use for left wheel set
+	 * @param controller2
+	 *            Logitech (or XBox controller) to use for right wheel set
+	 * @param translationMultiplier
+	 *            How much power to use
+	 * @param squaredInputs
+	 *            Squared inputs or not
+	 */
+	public void tankDrive(SingularityController controller1,
+			SingularityController controller2, double translationMultiplier,
+			boolean squaredInputs) {
+		double left = controller1.getY(), right = controller2.getY();
+
+		if (squaredInputs) {
+			left *= Math.abs(left);
+			right *= Math.abs(right);
+		}
+
+		m_frontLeftMotor.set(left * translationMultiplier);
+		m_rearLeftMotor.set(left * translationMultiplier);
+		m_frontRightMotor.set(right * translationMultiplier);
+		m_rearRightMotor.set(right * translationMultiplier);
+	}
+
+	/**
+	 * Arcade drive using a single controller. Simple and easy....
+	 * 
+	 * @param controller
+	 *            SingularityController to use
+	 * @param translationMultiplier
+	 *            How much power to go forwards/backwards
+	 * @param rotationMultiplier
+	 *            How much power to rotate
+	 * @param squaredInputs
+	 *            Squared inputs or not
+	 */
+	public void arcadeDrive(SingularityController controller,
+			double translationMultiplier, double rotationMultiplier,
+			boolean squaredInputs) {
+		double x = controller.getX(), y = controller.getY();
+
+		if (squaredInputs) {
+			x *= Math.abs(x);
+			y *= Math.abs(y);
+		}
+
+		m_frontLeftMotor
+				.set(y * translationMultiplier + x * rotationMultiplier);
+		m_rearLeftMotor.set(y * translationMultiplier + x * rotationMultiplier);
+		m_frontRightMotor.set(y * translationMultiplier - x
+				* rotationMultiplier);
+		m_rearRightMotor.set(y * translationMultiplier - x * rotationMultiplier);
+	}
+
+	/**
+	 * Old version of mecanum drive. Only for backup purposes.
+	 */
 	public void oldDriveMecanumOldIsRedundant(Joystick js,
 			double translationMultiplier, double rotationMultiplier) {
 

@@ -62,6 +62,7 @@ public class Robot extends IterativeRobot {
 		try {
 			applyProperties(sr.readProperties(propFileURL));
 		} catch (IOException e) {
+			SmartDashboard.putString("Properties Loaded", "unsuccessfully");
 			System.out
 					.println("Failed to load properties file, loading defaults");
 
@@ -76,13 +77,8 @@ public class Robot extends IterativeRobot {
 
 			// Initialize input controls
 			js = new Joystick(0);
-			jsb2 = new JoystickButton(js, 2);
-			jsb5 = new JoystickButton(js, 5);
-			jsb6 = new JoystickButton(js, 6);
-			jsb7 = new JoystickButton(js, 7);
 			us = new Ultrasonic(1, 0);
 			us.setEnabled(true);
-			xbox = new SingularityController(js,SingularityController.XBOX);
 
 			// Initialize the camera properties
 			cameraQuality = 50;
@@ -101,6 +97,11 @@ public class Robot extends IterativeRobot {
 		// cs.setQuality(cameraQuality);
 		// cs.startAutomaticCapture(cameraPort);
 		sd = new SingularityDrive(frontLeft, backLeft, frontRight, backRight);
+
+		controller = new SingularityController(js, SingularityController.XBOX);
+
+		mode = 0;
+		startWasPressed = false;
 	}
 
 	/**
