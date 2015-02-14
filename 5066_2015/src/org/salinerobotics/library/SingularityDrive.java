@@ -50,11 +50,12 @@ public class SingularityDrive extends RobotDrive {
 	 * @param squaredInputs
 	 *            Uses squared inputs if it's true
 	 */
-	public void driveMecanum(Joystick js, double translationMultiplier,
-			double rotationMultiplier, boolean squaredInputs) {
+	public void driveMecanum(SingularityController controller,
+			double translationMultiplier, double rotationMultiplier,
+			boolean squaredInputs) {
 
-		double x = js.getX(), y = js.getY(), z = js.getTwist()
-				* rotationMultiplier;
+		double x = controller.getX(), y = controller.getY(), z = controller
+				.getZ() * rotationMultiplier;
 
 		// If squaredInputs square the inputs
 		if (squaredInputs) {
@@ -81,6 +82,8 @@ public class SingularityDrive extends RobotDrive {
 	}
 
 	/**
+	 * Tank drive using one controller with two joysticks (i.e. use an XBox
+	 * controller if you want to do anything useful)
 	 * 
 	 * @param controller
 	 *            XBox controller to use. Will not be okay if you use a logitech
@@ -106,6 +109,9 @@ public class SingularityDrive extends RobotDrive {
 	}
 
 	/**
+	 * Tank drive using two joystick inputs (can be XBox controllers if you want
+	 * to do it the stupid way...)
+	 * 
 	 * 
 	 * @param controller1
 	 *            Logitech (or XBox controller) to use for left wheel set
@@ -133,25 +139,32 @@ public class SingularityDrive extends RobotDrive {
 	}
 
 	/**
+	 * Arcade drive using a single controller. Simple and easy....
 	 * 
-	 * @param controller @SingularityController to use
-	 * @param translationMultiplier How much power to go forwards/backwards
-	 * @param rotationMultiplier How much power to rotate
-	 * @param squaredInputs Squared inputs or not
+	 * @param controller
+	 *            SingularityController to use
+	 * @param translationMultiplier
+	 *            How much power to go forwards/backwards
+	 * @param rotationMultiplier
+	 *            How much power to rotate
+	 * @param squaredInputs
+	 *            Squared inputs or not
 	 */
 	public void arcadeDrive(SingularityController controller,
 			double translationMultiplier, double rotationMultiplier,
 			boolean squaredInputs) {
 		double x = controller.getX(), y = controller.getY();
-		
+
 		if (squaredInputs) {
 			x *= Math.abs(x);
 			y *= Math.abs(y);
 		}
 
-		m_frontLeftMotor.set(y * translationMultiplier + x * rotationMultiplier);
+		m_frontLeftMotor
+				.set(y * translationMultiplier + x * rotationMultiplier);
 		m_rearLeftMotor.set(y * translationMultiplier + x * rotationMultiplier);
-		m_frontRightMotor.set(y * translationMultiplier - x * rotationMultiplier);
+		m_frontRightMotor.set(y * translationMultiplier - x
+				* rotationMultiplier);
 		m_rearLeftMotor.set(y * translationMultiplier - x * rotationMultiplier);
 	}
 

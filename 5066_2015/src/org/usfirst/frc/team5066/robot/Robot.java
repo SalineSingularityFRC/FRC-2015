@@ -3,12 +3,10 @@ package org.usfirst.frc.team5066.robot;
 import java.io.IOException;
 import java.util.Properties;
 
-import edu.wpi.first.wpilibj.buttons.JoystickButton;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj.AnalogTrigger;
 import edu.wpi.first.wpilibj.IterativeRobot;
 import edu.wpi.first.wpilibj.Joystick;
-import edu.wpi.first.wpilibj.RobotDrive;
 import edu.wpi.first.wpilibj.Ultrasonic;
 
 import org.salinerobotics.library.SingularityController;
@@ -30,38 +28,38 @@ public class Robot extends IterativeRobot {
 	 * used for any initialization code.
 	 */
 
-	
-	final double MULTIPLIER = 1;
-
-	//create integers for ports, intakes, and camera
+	// create integers for ports, intakes, and camera
 	private int backLeft, backRight, frontLeft, frontRight, intakeLeft,
 			intakeRight, cameraQuality;
 	private String cameraPort;
 
-	//create ultrasonic object
+	// create ultrasonic object
 	Ultrasonic us;
-	
-	//create joystick and joystick button objects
-	Joystick js;
-	SingularityController xbox;
-	JoystickButton jsb2, jsb5, jsb6, jsb7;
 
-	RobotDrive rd;
+	// create joystick and joystick button objects
+	Joystick js;
+	SingularityController controller;
+
 	Intake intake;
 
 	private SingularityDrive sd;
 	private SingularityReader sr;
-	private final String propFileURL = "/resources/config.properties", MODES[] = {"Mecanum", "Arcade", "Tank"};
+	private final String propFileURL = "/config.properties", MODES[] = {
+			"Mecanum", "Arcade", "Tank" };
 	AnalogTrigger at;
 
 	RangeFinder rf;
 
-	int mode = 0;
+	int mode, counter;
+	boolean startWasPressed;
+	final double translationConstant = 0.35, rotationConstant = 0.25;
+
 	public void robotInit() {
 		sr = new SingularityReader();
 		try {
 			applyProperties(sr.readProperties(propFileURL));
 		} catch (IOException e) {
+			SmartDashboard.putString("Properties", "Unsuccessful");
 			System.out
 					.println("Failed to load properties file, loading defaults");
 
@@ -76,13 +74,8 @@ public class Robot extends IterativeRobot {
 
 			// Initialize input controls
 			js = new Joystick(0);
-			jsb2 = new JoystickButton(js, 2);
-			jsb5 = new JoystickButton(js, 5);
-			jsb6 = new JoystickButton(js, 6);
-			jsb7 = new JoystickButton(js, 7);
 			us = new Ultrasonic(1, 0);
 			us.setEnabled(true);
-			xbox = new SingularityController(js,SingularityController.XBOX);
 
 			// Initialize the camera properties
 			cameraQuality = 50;
@@ -101,6 +94,11 @@ public class Robot extends IterativeRobot {
 		// cs.setQuality(cameraQuality);
 		// cs.startAutomaticCapture(cameraPort);
 		sd = new SingularityDrive(frontLeft, backLeft, frontRight, backRight);
+
+		controller = new SingularityController(js, SingularityController.XBOX);
+
+		mode = 0;
+		startWasPressed = false;
 	}
 
 	/**
@@ -113,30 +111,38 @@ public class Robot extends IterativeRobot {
 	 * This function is called periodically during operator control
 	 */
 	public void teleopPeriodic() {
-		// SmartDashboard.putNumber("Is enabled",0);
-		sd.driveMecanum(js, .35 * (1 - js.getThrottle()),
-				.25 * (1 - js.getThrottle()), true);
-		// SmartDashboard.putNumber("Ultrasonic Range Inches",
-		// us.getRangeInches());
-		// SmartDashboard.putNumber("Ultrasonic Range MM", us.getRangeMM());
-		// if(us.isEnabled()){
-		// SmartDashboard.putNumber("Is enabled",1);
-
-		// }
-
 		/*
 		 * if(jsb2.get() == true) { intake.set(0.4); } else intake.set(0.0);
 		 */
-		
-		
-		//  Puts the range using the Ultrasonic sensor into the dashboard in inches		
-		if(xbox.getStart()) {
-			mode = (mode + 1) % 3;
+		if (controller.getStart()) {
+			if (!startWasPressed) {
+				mode = (mode + 1) % 3;
+				counter = (counter + 1) % 3;
+			}
+			startWasPressed = true;
+		} else {
+			startWasPressed = false;
 		}
-		
-		SmartDashboard.putNumber("Z Axis", xbox.getZ());
-		SmartDashboard.putNumber("Y Axis", xbox.getY());
-		SmartDashboard.putNumber("X Axis", xbox.getX());
+
+		switch (mode) {
+		case 0:
+			sd.driveMecanum(controller, translationConstant, rotationConstant,
+					false);
+			break;
+		case 1:
+			sd.arcadeDrive(controller, translationConstant, rotationConstant,
+					false);
+			break;
+		case 2:
+			sd.tankDrive(controller, translationConstant, false);
+			break;
+		default:
+			break;
+		}
+
+		SmartDashboard.putNumber("Z Axis", controller.getZ());
+		SmartDashboard.putNumber("Y Axis", controller.getY());
+		SmartDashboard.putNumber("X Axis", controller.getX());
 		SmartDashboard.putString("Mode", MODES[mode]);
 	}
 
@@ -159,21 +165,24 @@ public class Robot extends IterativeRobot {
 		frontLeft = Integer.parseInt(prop.getProperty("talonFrontLeft"));
 		backLeft = Integer.parseInt(prop.getProperty("talonBackLeft"));
 		frontRight = Integer.parseInt(prop.getProperty("talonFrontRight"));
-		backLeft = Integer.parseInt(prop.getProperty("talonBackLeft"));
+		backRight = Integer.parseInt(prop.getProperty("talonBackRight"));
 		intakeLeft = Integer.parseInt(prop.getProperty("intakeLeft"));
 		intakeRight = Integer.parseInt(prop.getProperty("intakeRight"));
+		
+		SmartDashboard.putNumber("frontLeft", frontLeft);
+		SmartDashboard.putNumber("frontRight", frontRight);
+		SmartDashboard.putNumber("backLeft", backLeft);
+		SmartDashboard.putNumber("backRight", backRight);
 
 		// Initialize input controls
 		js = new Joystick(0);
-		jsb2 = new JoystickButton(js, 2);
-		jsb5 = new JoystickButton(js, 5);
-		jsb6 = new JoystickButton(js, 6);
-		jsb7 = new JoystickButton(js, 7);
 		us = new Ultrasonic(1, 0);
 		us.setEnabled(true);
-		
-		//initialize camera
+
+		// initialize camera
 		cameraQuality = Integer.parseInt(prop.getProperty("cameraQuality"));
 		cameraPort = prop.getProperty("camID");
+
+		SmartDashboard.putString("Properties", "Successful");
 	}
 }

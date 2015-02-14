@@ -90,4 +90,15 @@ public class SingularityController {
 			return false;
 		}
 	}
+	
+	public boolean getA() {
+		switch (type) {
+		case LOGITECH:
+			return (new JoystickButton(joystick, 1)).get();
+		case XBOX:
+			return (new JoystickButton(joystick, 1)).get();
+		default:
+			return false;
+		}
+	}
 }
