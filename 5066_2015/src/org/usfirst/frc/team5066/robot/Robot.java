@@ -48,6 +48,7 @@ public class Robot extends IterativeRobot {
 
 	RobotDrive rd;
 	Intake intake;
+	Camera2015 cam;
 
 	private SingularityDrive sd;
 	private SingularityReader sr;
@@ -90,8 +91,8 @@ public class Robot extends IterativeRobot {
 			rf = new RangeFinder(0);
 		}
 		// TODO delete Vision_2015
-		Camera2015 cam = new Camera2015(cameraPort, cameraQuality);
-		cam.startSimpleCamera();
+		cam = new Camera2015(cameraPort, cameraQuality);
+		cam.initCameraForProcessing();
 
 		// initialize the intake properties
 		intake = new Intake(intakeLeft, intakeRight);
@@ -113,6 +114,7 @@ public class Robot extends IterativeRobot {
 	 */
 	public void teleopPeriodic() {
 		// SmartDashboard.putNumber("Is enabled",0);
+		cam.processImages();
 		sd.driveMecanum(js, .35 * (1 - js.getThrottle()),
 				.25 * (1 - js.getThrottle()), true);
 		// SmartDashboard.putNumber("Ultrasonic Range Inches",
