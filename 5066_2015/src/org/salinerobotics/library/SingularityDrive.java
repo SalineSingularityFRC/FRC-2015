@@ -6,7 +6,6 @@ import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.RobotDrive;
 
 public class SingularityDrive extends RobotDrive {
-
 	public SingularityDrive(int leftMotorChannel, int rightMotorChannel) {
 		super(leftMotorChannel, rightMotorChannel);
 	}
@@ -81,6 +80,61 @@ public class SingularityDrive extends RobotDrive {
 		m_rearLeftMotor.set(magnitude * Math.sin(direction + Math.PI / 4) - z);
 	}
 
+	/**
+	 * 
+	 * @param controller
+	 *            XBox controller to use. Will not be okay if you use a logitech
+	 *            one.
+	 * @param translationMultiplier
+	 *            How much power to use
+	 * @param squaredInputs
+	 *            Squared inputs or not.
+	 */
+	public void tankDrive(SingularityController controller,
+			double translationMultiplier, boolean squaredInputs) {
+		double left = controller.getLeftY(), right = controller.getRightY();
+
+		if (squaredInputs) {
+			left *= Math.abs(left);
+			right *= Math.abs(right);
+		}
+
+		m_frontLeftMotor.set(left * translationMultiplier);
+		m_rearLeftMotor.set(left * translationMultiplier);
+		m_frontRightMotor.set(right * translationMultiplier);
+		m_rearLeftMotor.set(right * translationMultiplier);
+	}
+
+	/**
+	 * 
+	 * @param controller1
+	 *            Logitech (or XBox controller) to use for left wheel set
+	 * @param controller2
+	 *            Logitech (or XBox controller) to use for right wheel set
+	 * @param translationMultiplier
+	 *            How much power to use
+	 * @param squaredInputs
+	 *            Squared inputs or not
+	 */
+	public void tankDrive(SingularityController controller1,
+			SingularityController controller2, double translationMultiplier,
+			boolean squaredInputs) {
+		double left = controller1.getY(), right = controller2.getY();
+
+		if (squaredInputs) {
+			left *= Math.abs(left);
+			right *= Math.abs(right);
+		}
+
+		m_frontLeftMotor.set(left * translationMultiplier);
+		m_rearLeftMotor.set(left * translationMultiplier);
+		m_frontRightMotor.set(right * translationMultiplier);
+		m_rearLeftMotor.set(right * translationMultiplier);
+	}
+
+	/**
+	 * Old version of mecanum drive. Only for backup purposes.
+	 */
 	public void oldDriveMecanumOldIsRedundant(Joystick js,
 			double translationMultiplier, double rotationMultiplier) {
 

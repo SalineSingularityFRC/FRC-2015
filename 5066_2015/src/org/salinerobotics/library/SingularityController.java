@@ -1,6 +1,7 @@
 package org.salinerobotics.library;
 
 import edu.wpi.first.wpilibj.Joystick;
+import edu.wpi.first.wpilibj.buttons.JoystickButton;
 
 public class SingularityController {
 	public static final int LOGITECH = 0, XBOX = 1;
@@ -14,14 +15,14 @@ public class SingularityController {
 	}
 
 	public double getX() {
-		return this.getX();
+		return joystick.getX();
 	}
 
 	public double getY() {
 		if (type == XBOX)
-			return -this.getY();
+			return -joystick.getY();
 		else
-			return this.getY();
+			return joystick.getY();
 	}
 	
 	public double getZ() {
@@ -76,6 +77,17 @@ public class SingularityController {
 			return -joystick.getRawAxis(5);
 		default:
 			return 0;
+		}
+	}
+	
+	public boolean getStart() {
+		switch (type) {
+		case LOGITECH:
+			return (new JoystickButton(joystick, 1)).get();
+		case XBOX:
+			return (new JoystickButton(joystick, 8)).get();
+		default:
+			return false;
 		}
 	}
 }

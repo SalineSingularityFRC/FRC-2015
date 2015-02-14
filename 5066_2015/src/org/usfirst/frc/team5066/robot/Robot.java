@@ -51,11 +51,12 @@ public class Robot extends IterativeRobot {
 
 	private SingularityDrive sd;
 	private SingularityReader sr;
-	private final String propFileURL = "/resources/config.properties";
+	private final String propFileURL = "/resources/config.properties", MODES[] = {"Mecanum", "Arcade", "Tank"};
 	AnalogTrigger at;
 
 	RangeFinder rf;
 
+	int mode = 0;
 	public void robotInit() {
 		sr = new SingularityReader();
 		try {
@@ -129,11 +130,14 @@ public class Robot extends IterativeRobot {
 		
 		
 		//  Puts the range using the Ultrasonic sensor into the dashboard in inches		
-		SmartDashboard.putNumber("X1", js.getRawAxis(1));
-		SmartDashboard.putNumber("Y1", -js.getRawAxis(2));
-		SmartDashboard.putNumber("X2", js.getRawAxis(4));
-		SmartDashboard.putNumber("Y2", -js.getRawAxis(5));
+		if(xbox.getStart()) {
+			mode = (mode + 1) % 3;
+		}
 		
+		SmartDashboard.putNumber("Z Axis", xbox.getZ());
+		SmartDashboard.putNumber("Y Axis", xbox.getY());
+		SmartDashboard.putNumber("X Axis", xbox.getX());
+		SmartDashboard.putString("Mode", MODES[mode]);
 	}
 
 	/**
