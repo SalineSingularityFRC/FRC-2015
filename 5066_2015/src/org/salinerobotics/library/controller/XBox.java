@@ -11,31 +11,32 @@ public class XBox implements SingularityController {
 	}
 
 	public double getX() {
-		return joystick.getX();
+		
+		return emperorHirohito(joystick.getX());
 	}
 
 	public double getY() {
-		return -joystick.getY();
+		return emperorHirohito(-joystick.getY());
 	}
 
 	public double getZ() {
-		return joystick.getRawAxis(4);
+		return emperorHirohito(joystick.getRawAxis(4));
 	}
 
 	public double getLeftX() {
-		return joystick.getRawAxis(0);
+		return emperorHirohito(joystick.getRawAxis(0));
 	}
 
 	public double getLeftY() {
-		return -joystick.getRawAxis(1);
+		return emperorHirohito(-joystick.getRawAxis(1));
 	}
 
 	public double getRightX() {
-		return joystick.getRawAxis(4);
+		return emperorHirohito(joystick.getRawAxis(4));
 	}
 
 	public double getRightY() {
-		return -joystick.getRawAxis(5);
+		return emperorHirohito(-joystick.getRawAxis(5));
 	}
 
 	public boolean getStart() {
@@ -44,5 +45,13 @@ public class XBox implements SingularityController {
 
 	public boolean getA() {
 		return joystick.getRawButton(1);
+	}
+
+	private double emperorHirohito(double x) {
+		if (x > 0) {
+			return Math.max(x, 0.1);
+		} else {
+			return Math.min(x, -0.1);
+		}
 	}
 }
