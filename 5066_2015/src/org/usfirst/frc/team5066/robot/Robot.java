@@ -3,17 +3,18 @@ package org.usfirst.frc.team5066.robot;
 import java.io.IOException;
 import java.util.Properties;
 
-import edu.wpi.first.wpilibj.buttons.JoystickButton;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import org.salinerobotics.library.SingularityDrive;
+import org.salinerobotics.library.SingularityReader;
+import org.salinerobotics.library.controller.Logitech;
+import org.salinerobotics.library.controller.SingularityController;
+import org.salinerobotics.library.controller.XBox;
+
 import edu.wpi.first.wpilibj.AnalogTrigger;
 import edu.wpi.first.wpilibj.IterativeRobot;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.RobotDrive;
 import edu.wpi.first.wpilibj.Ultrasonic;
-
-import org.salinerobotics.library.SingularityController;
-import org.salinerobotics.library.SingularityDrive;
-import org.salinerobotics.library.SingularityReader;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 /**
  * The VM is configured to automatically run this class, and to call the
@@ -30,32 +31,36 @@ public class Robot extends IterativeRobot {
 	 * used for any initialization code.
 	 */
 
-	
 	final double MULTIPLIER = 1;
 
-	//create integers for ports, intakes, and camera
+	// create integers for ports, intakes, and camera
 	private int backLeft, backRight, frontLeft, frontRight, intakeLeft,
 			intakeRight, cameraQuality;
-	private String cameraPort;
+	private String cameraPort1, cameraPort2;
 
-	//create ultrasonic object
+	// create ultrasonic object
 	Ultrasonic us;
-	
-	//create joystick and joystick button objects
+
+	// create joystick and joystick button objects
 	Joystick js;
 	SingularityController xbox;
-	JoystickButton jsb2, jsb5, jsb6, jsb7;
 
 	RobotDrive rd;
 	Intake intake;
-	Camera2015 cam;
+	Camera2015 cam1, cam2;
 
 	private SingularityDrive sd;
 	private SingularityReader sr;
-	private final String propFileURL = "/resources/config.properties";
+	private final String propFileURL = "/config.properties";
 	AnalogTrigger at;
 
 	RangeFinder rf;
+	XBox xBax;
+	int mode;
+	boolean startWasPressed;
+
+	final double TRANSLATION_CONSTANT = .35, ROTATION_CONSTANT = .25;
+	final String[] MODES = { "Mecanum", "Arcade", "Tank" };
 
 	public void robotInit() {
 		sr = new SingularityReader();
@@ -73,23 +78,28 @@ public class Robot extends IterativeRobot {
 			frontRight = 6;
 			backLeft = 4;
 			intakeLeft = 2;
-			intakeRight = 5;
+			intakeRight = 3;
 
 			// Initialize input controls
 			js = new Joystick(0);
+
 			us = new Ultrasonic(1, 0);
 			us.setEnabled(true);
 
 			// Initialize the camera properties
 			cameraQuality = 50;
-			cameraPort = "cam0";
+			cameraPort1 = "cam0";
+			cameraPort2 = "cam1";
 
 			rf = new RangeFinder(0);
 		}
 		// TODO delete Vision_2015
-		cam = new Camera2015(cameraPort, cameraQuality);
-		cam.initCameraForProcessing();
-
+		// cam1 = new Camera2015(cameraPort1, cameraQuality);
+		// cam1.initCameraForProcessing();
+		/*
+		 * for cam 2 cam2 = new Camera2015(cameraPort2, cameraQuality);
+		 * cam2.initCameraForProcessing();
+		 */
 		// initialize the intake properties
 		intake = new Intake(intakeLeft, intakeRight);
 		// Initialize the camera, and start taking video
@@ -98,9 +108,10 @@ public class Robot extends IterativeRobot {
 		// cs.startAutomaticCapture(cameraPort);
 		sd = new SingularityDrive(frontLeft, backLeft, frontRight, backRight);
 
-		controller = new SingularityController(js, SingularityController.XBOX);
+		xBax = new XBox(js);
 
 		mode = 0;
+		SmartDashboard.putString("Mode", "Mecanum");
 		startWasPressed = false;
 	}
 
@@ -115,9 +126,7 @@ public class Robot extends IterativeRobot {
 	 */
 	public void teleopPeriodic() {
 		// SmartDashboard.putNumber("Is enabled",0);
-		cam.processImages();
-		sd.driveMecanum(js, .35 * (1 - js.getThrottle()),
-				.25 * (1 - js.getThrottle()), true);
+		// cam.processImages();
 		// SmartDashboard.putNumber("Ultrasonic Range Inches",
 		// us.getRangeInches());
 		// SmartDashboard.putNumber("Ultrasonic Range MM", us.getRangeMM());
@@ -129,14 +138,35 @@ public class Robot extends IterativeRobot {
 		/*
 		 * if(jsb2.get() == true) { intake.set(0.4); } else intake.set(0.0);
 		 */
-		
-		
-		//  Puts the range using the Ultrasonic sensor into the dashboard in inches		
-		SmartDashboard.putNumber("X1", js.getRawAxis(1));
-		SmartDashboard.putNumber("Y1", -js.getRawAxis(2));
-		SmartDashboard.putNumber("X2", js.getRawAxis(4));
-		SmartDashboard.putNumber("Y2", -js.getRawAxis(5));
-		
+
+		if (xBax.getStart()) {
+			if (!startWasPressed) {
+				mode = (mode + 1) % 3;
+				SmartDashboard.putString("Mode", MODES[mode]);
+			}
+			startWasPressed = true;
+		} else {
+			startWasPressed = false;
+		}
+
+		switch (mode) {
+		case 0:
+			sd.driveMecanum(xBax, TRANSLATION_CONSTANT, ROTATION_CONSTANT,
+					false);
+			break;
+		case 1:
+			sd.arcadeDrive(xBax, TRANSLATION_CONSTANT, ROTATION_CONSTANT, false);
+			break;
+		case 2:
+			sd.tankDrive(xBax, TRANSLATION_CONSTANT, false);
+			break;
+		default:
+			break;
+		}
+
+		SmartDashboard.putNumber("Z Axis", xBax.getZ());
+		SmartDashboard.putNumber("Y Axis", xBax.getLeftY());
+		SmartDashboard.putNumber("X Axis", xBax.getLeftX());
 	}
 
 	/**
@@ -158,21 +188,20 @@ public class Robot extends IterativeRobot {
 		frontLeft = Integer.parseInt(prop.getProperty("talonFrontLeft"));
 		backLeft = Integer.parseInt(prop.getProperty("talonBackLeft"));
 		frontRight = Integer.parseInt(prop.getProperty("talonFrontRight"));
-		backLeft = Integer.parseInt(prop.getProperty("talonBackLeft"));
+		backRight = Integer.parseInt(prop.getProperty("talonBackRight"));
 		intakeLeft = Integer.parseInt(prop.getProperty("intakeLeft"));
 		intakeRight = Integer.parseInt(prop.getProperty("intakeRight"));
 
 		// Initialize input controls
 		js = new Joystick(0);
-		jsb2 = new JoystickButton(js, 2);
-		jsb5 = new JoystickButton(js, 5);
-		jsb6 = new JoystickButton(js, 6);
-		jsb7 = new JoystickButton(js, 7);
 		us = new Ultrasonic(1, 0);
 		us.setEnabled(true);
-		
-		//initialize camera
+
+		// initialize camera
 		cameraQuality = Integer.parseInt(prop.getProperty("cameraQuality"));
-		cameraPort = prop.getProperty("camID");
+		cameraPort1 = prop.getProperty("camID");
+		// for cam 2
+		cameraPort2 = prop.getProperty("camID2");
+		SmartDashboard.putString("Properties Loaded", "successfully");
 	}
 }

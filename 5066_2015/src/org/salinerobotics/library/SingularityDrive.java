@@ -1,6 +1,8 @@
 package org.salinerobotics.library;
 
 //Java Docs: http://first.wpi.edu/FRC/roborio/release/docs/java/
+import org.salinerobotics.library.controller.SingularityController;
+
 import edu.wpi.first.wpilibj.GenericHID;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.RobotDrive;
