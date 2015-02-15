@@ -4,39 +4,38 @@ import edu.wpi.first.wpilibj.Joystick;
 
 public class XBox implements SingularityController {
 
-	Joystick joystick;
+	private Joystick joystick;
 
 	public XBox(Joystick joystick) {
 		this.joystick = joystick;
 	}
 
 	public double getX() {
-		
-		return emperorHirohito(joystick.getX());
+		return eliminateSmall(joystick.getX());
 	}
 
 	public double getY() {
-		return emperorHirohito(-joystick.getY());
+		return eliminateSmall(-joystick.getY());
 	}
 
 	public double getZ() {
-		return emperorHirohito(joystick.getRawAxis(4));
+		return eliminateSmall(joystick.getRawAxis(4));
 	}
 
 	public double getLeftX() {
-		return emperorHirohito(joystick.getRawAxis(0));
+		return eliminateSmall(joystick.getRawAxis(0));
 	}
 
 	public double getLeftY() {
-		return emperorHirohito(-joystick.getRawAxis(1));
+		return eliminateSmall(-joystick.getRawAxis(1));
 	}
 
 	public double getRightX() {
-		return emperorHirohito(joystick.getRawAxis(4));
+		return eliminateSmall(joystick.getRawAxis(4));
 	}
 
 	public double getRightY() {
-		return emperorHirohito(-joystick.getRawAxis(5));
+		return eliminateSmall(-joystick.getRawAxis(5));
 	}
 
 	public boolean getStart() {
@@ -47,11 +46,11 @@ public class XBox implements SingularityController {
 		return joystick.getRawButton(1);
 	}
 
-	private double emperorHirohito(double x) {
-		if (x > 0) {
-			return Math.max(x, 0.1);
+	private double eliminateSmall(double x) {
+		if (x > 0.1 || x < -0.1) {
+			return x;
 		} else {
-			return Math.min(x, -0.1);
+			return 0;
 		}
 	}
 }

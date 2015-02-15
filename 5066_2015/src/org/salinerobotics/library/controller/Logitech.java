@@ -4,7 +4,7 @@ import edu.wpi.first.wpilibj.Joystick;
 
 public class Logitech implements SingularityController{
 
-	Joystick joystick;
+	private Joystick joystick;
 	
 	public Logitech(Joystick joystick){
 		this.joystick = joystick;
@@ -39,10 +39,6 @@ public class Logitech implements SingularityController{
 	}
 
 	public boolean getStart() {
-		return joystick.getRawButton(1);
-	}
-
-	public boolean getA() {
 		return joystick.getRawButton(1);
 	}
 }

@@ -97,7 +97,7 @@ public class SingularityDrive extends RobotDrive {
 	 */
 	public void tankDrive(SingularityController controller,
 			double translationMultiplier, boolean squaredInputs) {
-		double left = controller.getLeftY(), right = controller.getRightY();
+		double left = -controller.getLeftY(), right = controller.getRightY();
 
 		if (squaredInputs) {
 			left *= Math.abs(left);
@@ -127,7 +127,7 @@ public class SingularityDrive extends RobotDrive {
 	public void tankDrive(SingularityController controller1,
 			SingularityController controller2, double translationMultiplier,
 			boolean squaredInputs) {
-		double left = controller1.getY(), right = controller2.getY();
+		double left = -controller1.getY(), right = controller2.getY();
 
 		if (squaredInputs) {
 			left *= Math.abs(left);
@@ -162,12 +162,14 @@ public class SingularityDrive extends RobotDrive {
 			y *= Math.abs(y);
 		}
 
-		m_frontLeftMotor
-				.set(y * translationMultiplier + x * rotationMultiplier);
-		m_rearLeftMotor.set(y * translationMultiplier + x * rotationMultiplier);
+		m_frontLeftMotor.set(-y * translationMultiplier - x
+				* rotationMultiplier);
+		m_rearLeftMotor
+				.set(-y * translationMultiplier - x * rotationMultiplier);
 		m_frontRightMotor.set(y * translationMultiplier - x
 				* rotationMultiplier);
-		m_rearRightMotor.set(y * translationMultiplier - x * rotationMultiplier);
+		m_rearRightMotor
+				.set(y * translationMultiplier - x * rotationMultiplier);
 	}
 
 	/**

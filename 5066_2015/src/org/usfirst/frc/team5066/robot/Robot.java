@@ -51,11 +51,11 @@ public class Robot extends IterativeRobot {
 
 	private SingularityDrive sd;
 	private SingularityReader sr;
-	private final String propFileURL = "/config.properties";
+	private final String PROP_FILE_URL = "/config.properties";
 	AnalogTrigger at;
 
 	RangeFinder rf;
-	XBox xBax;
+	XBox movementController;
 	int mode;
 	boolean startWasPressed;
 
@@ -65,7 +65,7 @@ public class Robot extends IterativeRobot {
 	public void robotInit() {
 		sr = new SingularityReader();
 		try {
-			applyProperties(sr.readProperties(propFileURL));
+			applyProperties(sr.readProperties(PROP_FILE_URL));
 		} catch (IOException e) {
 			SmartDashboard.putString("Properties Loaded", "unsuccessfully");
 			System.out
@@ -108,7 +108,7 @@ public class Robot extends IterativeRobot {
 		// cs.startAutomaticCapture(cameraPort);
 		sd = new SingularityDrive(frontLeft, backLeft, frontRight, backRight);
 
-		xBax = new XBox(js);
+		movementController = new XBox(js);
 
 		mode = 0;
 		SmartDashboard.putString("Mode", "Mecanum");
@@ -139,7 +139,7 @@ public class Robot extends IterativeRobot {
 		 * if(jsb2.get() == true) { intake.set(0.4); } else intake.set(0.0);
 		 */
 
-		if (xBax.getStart()) {
+		if (movementController.getStart()) {
 			if (!startWasPressed) {
 				mode = (mode + 1) % 3;
 				SmartDashboard.putString("Mode", MODES[mode]);
@@ -151,22 +151,22 @@ public class Robot extends IterativeRobot {
 
 		switch (mode) {
 		case 0:
-			sd.driveMecanum(xBax, TRANSLATION_CONSTANT, ROTATION_CONSTANT,
+			sd.driveMecanum(movementController, TRANSLATION_CONSTANT, ROTATION_CONSTANT,
 					false);
 			break;
 		case 1:
-			sd.arcadeDrive(xBax, TRANSLATION_CONSTANT, ROTATION_CONSTANT, false);
+			sd.arcadeDrive(movementController, TRANSLATION_CONSTANT, ROTATION_CONSTANT, false);
 			break;
 		case 2:
-			sd.tankDrive(xBax, TRANSLATION_CONSTANT, false);
+			sd.tankDrive(movementController, TRANSLATION_CONSTANT, false);
 			break;
 		default:
 			break;
 		}
 
-		SmartDashboard.putNumber("Z Axis", xBax.getZ());
-		SmartDashboard.putNumber("Y Axis", xBax.getLeftY());
-		SmartDashboard.putNumber("X Axis", xBax.getLeftX());
+		SmartDashboard.putNumber("Z Axis", movementController.getZ());
+		SmartDashboard.putNumber("Y Axis", movementController.getLeftY());
+		SmartDashboard.putNumber("X Axis", movementController.getLeftX());
 	}
 
 	/**
