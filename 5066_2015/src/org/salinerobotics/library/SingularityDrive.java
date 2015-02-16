@@ -6,8 +6,10 @@ import org.salinerobotics.library.controller.SingularityController;
 import edu.wpi.first.wpilibj.GenericHID;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.RobotDrive;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 public class SingularityDrive extends RobotDrive {
+
 	public SingularityDrive(int leftMotorChannel, int rightMotorChannel) {
 		super(leftMotorChannel, rightMotorChannel);
 	}
@@ -57,7 +59,7 @@ public class SingularityDrive extends RobotDrive {
 			boolean squaredInputs) {
 
 		double x = controller.getX(), y = controller.getY(), z = controller
-				.getZ() * rotationMultiplier;
+				.getZ() * rotationMultiplier, magnitude, direction, maximum;
 
 		// If squaredInputs square the inputs
 		if (squaredInputs) {
@@ -67,20 +69,40 @@ public class SingularityDrive extends RobotDrive {
 		}
 
 		// Find magnitude using pythagorean theorem
-		double magnitude = Math.sqrt(x * x + y * y) * translationMultiplier;
+		magnitude = Math.sqrt((x * x) + (y * y)) * translationMultiplier;
 
 		// Find direction using arctan
-		double direction = Math.atan(-y / x);
+		direction = Math.atan(y / x);
 		if (x < 0) {
 			direction += Math.PI;
+		} else if (x == 0) {
+			if (y > 0) {
+				direction = Math.PI / 2;
+			} else {
+				direction = 3 * Math.PI / 2;
+			}
 		}
+		direction += Math.PI / 4;
+
+		maximum = Math.max(
+				Math.max(Math.abs(Math.sin(direction)),
+						Math.abs(Math.cos(direction)))
+						* magnitude + Math.abs(z), 1);
 
 		// Use formulas to set wheel speeds.
-		m_frontRightMotor
-				.set(magnitude * Math.sin(direction + Math.PI / 4) + z);
-		m_rearRightMotor.set(magnitude * Math.cos(direction + Math.PI / 4) - z);
-		m_frontLeftMotor.set(magnitude * Math.cos(direction + Math.PI / 4) + z);
-		m_rearLeftMotor.set(magnitude * Math.sin(direction + Math.PI / 4) - z);
+		m_frontRightMotor.set((magnitude * Math.cos(direction) + z) / maximum);
+		m_rearRightMotor.set((magnitude * -Math.sin(direction) + z) / maximum);
+		m_frontLeftMotor.set((magnitude * Math.sin(direction) + z) / maximum);
+		m_rearLeftMotor.set((magnitude * -Math.cos(direction) + z) / maximum);
+
+		SmartDashboard.putNumber("Yello", (magnitude * Math.sin(direction) + z)
+				/ maximum);
+		SmartDashboard.putNumber("Orng", (magnitude * -Math.cos(direction) + z)
+				/ maximum);
+		SmartDashboard.putNumber("Grean", (magnitude * Math.cos(direction) + z)
+				/ maximum);
+		SmartDashboard.putNumber("Lavendarererererer",
+				(magnitude * -Math.sin(direction) + z) / maximum);
 	}
 
 	/**
@@ -97,7 +119,7 @@ public class SingularityDrive extends RobotDrive {
 	 */
 	public void tankDrive(SingularityController controller,
 			double translationMultiplier, boolean squaredInputs) {
-		double left = -controller.getLeftY(), right = controller.getRightY();
+		double left = -controller.getOuterIntake(), right = controller.getInnerIntake();
 
 		if (squaredInputs) {
 			left *= Math.abs(left);
@@ -198,5 +220,19 @@ public class SingularityDrive extends RobotDrive {
 				+ js.getTwist() * rotationMultiplier);
 		m_rearLeftMotor.set(magnitude * Math.sin(direction + Math.PI / 4)
 				- js.getTwist() * rotationMultiplier);
+	}
+
+	public void forward() {
+		m_frontRightMotor.set(.5);
+		m_rearRightMotor.set(.5);
+		m_frontLeftMotor.set(-.5);
+		m_rearLeftMotor.set(-.5);
+	}
+
+	public void stop() {
+		m_frontRightMotor.set(0);
+		m_rearRightMotor.set(0);
+		m_frontLeftMotor.set(0);
+		m_rearLeftMotor.set(0);
 	}
 }

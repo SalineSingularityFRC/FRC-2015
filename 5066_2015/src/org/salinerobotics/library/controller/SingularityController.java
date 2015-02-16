@@ -9,10 +9,12 @@ public interface SingularityController {
 	public double getY();
 	public double getZ();
 	
+	public double getElevator();
+	
 	public double getLeftX();
 	public double getRightX();
-	public double getLeftY();
-	public double getRightY();
+	public double getOuterIntake();
+	public double getInnerIntake();
 	
 	public boolean getStart();
 }

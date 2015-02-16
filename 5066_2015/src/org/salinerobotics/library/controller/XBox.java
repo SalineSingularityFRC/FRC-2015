@@ -4,10 +4,25 @@ import edu.wpi.first.wpilibj.Joystick;
 
 public class XBox implements SingularityController {
 
+	private double sensitivityThreshhold;
 	private Joystick joystick;
 
 	public XBox(Joystick joystick) {
 		this.joystick = joystick;
+		this.sensitivityThreshhold = 0.15;
+	}
+
+	public XBox(Joystick joystick, double sensitivityThreshhold) {
+		this.joystick = joystick;
+		this.sensitivityThreshhold = sensitivityThreshhold;
+	}
+
+	public void setSensitivity(double sensitivityThreshhold) {
+		this.sensitivityThreshhold = sensitivityThreshhold;
+	}
+
+	public Joystick getJoystick() {
+		return joystick;
 	}
 
 	public double getX() {
@@ -26,7 +41,7 @@ public class XBox implements SingularityController {
 		return eliminateSmall(joystick.getRawAxis(0));
 	}
 
-	public double getLeftY() {
+	public double getOuterIntake() {
 		return eliminateSmall(-joystick.getRawAxis(1));
 	}
 
@@ -34,7 +49,7 @@ public class XBox implements SingularityController {
 		return eliminateSmall(joystick.getRawAxis(4));
 	}
 
-	public double getRightY() {
+	public double getInnerIntake() {
 		return eliminateSmall(-joystick.getRawAxis(5));
 	}
 
@@ -42,12 +57,24 @@ public class XBox implements SingularityController {
 		return joystick.getRawButton(8);
 	}
 
-	public boolean getA() {
+	public boolean getAButton() {
 		return joystick.getRawButton(1);
 	}
 
+	public boolean getBButton() {
+		return joystick.getRawButton(2);
+	}
+
+	public boolean getXButton() {
+		return joystick.getRawButton(3);
+	}
+
+	public double getElevator() {
+		return joystick.getRawAxis(3) - joystick.getRawAxis(2);
+	}
+
 	private double eliminateSmall(double x) {
-		if (x > 0.1 || x < -0.1) {
+		if (x > sensitivityThreshhold || x < -sensitivityThreshhold) {
 			return x;
 		} else {
 			return 0;

@@ -5,40 +5,67 @@ import edu.wpi.first.wpilibj.Joystick;
 public class Logitech implements SingularityController{
 
 	private Joystick joystick;
+	private double sensitivityThreshhold;
 	
 	public Logitech(Joystick joystick){
 		this.joystick = joystick;
+		this.sensitivityThreshhold = 0.15;
+	}
+	
+	public Logitech(Joystick joystick, double sensitivityThreshhold) {
+		this.joystick = joystick;
+		this.sensitivityThreshhold = sensitivityThreshhold;
+	}
+	
+	public void setSensitivity(double sensitivityThreshhold) {
+		this.sensitivityThreshhold = sensitivityThreshhold;
+	}
+	
+	public Joystick getJoystick() {
+		return joystick;
 	}
 	
 	public double getX() {
-		return joystick.getX();
+		return eliminateSmall(joystick.getX());
 	}
 
 	public double getY() {
-		return joystick.getY();
+		return eliminateSmall(-joystick.getY());
 	}
 
 	public double getZ() {
-		return joystick.getZ();
+		return eliminateSmall(joystick.getTwist());
 	}
 
 	public double getLeftX() {
-		return joystick.getX();
+		return eliminateSmall(joystick.getX());
 	}
 
-	public double getLeftY() {
-		return joystick.getY();
+	public double getOuterIntake() {
+		return eliminateSmall(-joystick.getY());
 	}
 
 	public double getRightX() {
-		return joystick.getX();
+		return eliminateSmall(joystick.getX());
 	}
 
-	public double getRightY() {
-		return joystick.getY();
+	public double getInnerIntake() {
+		return eliminateSmall(-joystick.getY());
 	}
 
 	public boolean getStart() {
-		return joystick.getRawButton(1);
+		return joystick.getRawButton(10);
+	}
+	
+	public double getElevator() {
+		return joystick.getY();
+	}
+	
+	private double eliminateSmall(double x) {
+		if (x > sensitivityThreshhold || x < -sensitivityThreshhold) {
+			return x;
+		} else {
+			return 0;
+		}
 	}
 }
