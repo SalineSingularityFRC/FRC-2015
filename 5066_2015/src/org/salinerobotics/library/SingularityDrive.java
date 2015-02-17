@@ -7,6 +7,7 @@ import edu.wpi.first.wpilibj.GenericHID;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.RobotDrive;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import java.text.SimpleDateFormat;import java.util.Calendar; //For timing while loops
 
 public class SingularityDrive extends RobotDrive {
 
@@ -228,11 +229,52 @@ public class SingularityDrive extends RobotDrive {
 		m_frontLeftMotor.set(-.5);
 		m_rearLeftMotor.set(-.5);
 	}
+	
+	public void backward(){
+		m_frontRightMotor.set(-.5);
+		m_rearRightMotor.set(-.5);
+		m_frontLeftMotor.set(.5);
+		m_rearLeftMotor.set(.5);
+	}
 
 	public void stop() {
 		m_frontRightMotor.set(0);
 		m_rearRightMotor.set(0);
 		m_frontLeftMotor.set(0);
 		m_rearLeftMotor.set(0);
+	}
+	public boolean turn(String direction){  //turns robot use clockwise or counterclockwise as direction. Returns whether succseful or not.
+		double turnVar=0;
+		if(direction.equals("clockwise")){
+			turnVar=-.5;
+		}else if(direction.equals("counterclockwise")){
+			turnVar=.5;
+		}else{return false;}
+		m_frontRightMotor.set(turnVar);
+		m_rearRightMotor.set(turnVar);
+		m_frontLeftMotor.set(turnVar);
+		m_rearLeftMotor.set(turnVar);
+		return true;
+	}
+/*Auton use. use: move([How long to move in milliseconds],[direction:clockwise,counterclockwise,forward,back,backwards],[wether to stop robot after moving])
+*/
+	public boolean move(int milSeconds,String direction,boolean stopAfter){ 
+		boolean result=true;
+		if(milSeconds>14999){return false;}
+		Calendar cal = Calendar.getInstance();
+		SimpleDateFormat mil = new SimpleDateFormat("ssmm");
+		boolean cont=true;
+		int start=0;
+		while(cont){
+			start = Integer.parseInt(mil.format(cal.getTime()));
+			if(direction.equals("clockwise")||direction.equals("counterclockwise")){result=turn(direction);
+			}else if(direction.equals("forward")){forward();
+			}else if(direction.equals("back")||direction.equals("backwards")){backward();}else{return false;}
+			milSeconds = Integer.parseInt(mil.format(cal.getTime())) - start;
+			if(Integer.parseInt(mil.format(cal.getTime()))-start<0){result=false;cont=false;}
+			if(milSeconds<=0){cont=false;}
+		}
+		if(stopAfter==true){stop();}
+		return result;
 	}
 }
