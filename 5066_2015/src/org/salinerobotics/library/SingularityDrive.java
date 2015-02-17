@@ -4,10 +4,9 @@ package org.salinerobotics.library;
 import org.salinerobotics.library.controller.SingularityController;
 
 import edu.wpi.first.wpilibj.GenericHID;
-import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.RobotDrive;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
-import java.text.SimpleDateFormat;import java.util.Calendar; //For timing while loops
+import java.text.SimpleDateFormat;
+import java.util.Calendar; //For timing while loops
 
 public class SingularityDrive extends RobotDrive {
 
@@ -95,15 +94,42 @@ public class SingularityDrive extends RobotDrive {
 		m_rearRightMotor.set((magnitude * -Math.sin(direction) + z) / maximum);
 		m_frontLeftMotor.set((magnitude * Math.sin(direction) + z) / maximum);
 		m_rearLeftMotor.set((magnitude * -Math.cos(direction) + z) / maximum);
+	}
 
-		SmartDashboard.putNumber("Yello", (magnitude * Math.sin(direction) + z)
-				/ maximum);
-		SmartDashboard.putNumber("Orng", (magnitude * -Math.cos(direction) + z)
-				/ maximum);
-		SmartDashboard.putNumber("Grean", (magnitude * Math.cos(direction) + z)
-				/ maximum);
-		SmartDashboard.putNumber("Lavendarererererer",
-				(magnitude * -Math.sin(direction) + z) / maximum);
+	/**
+	 * Translate. For auton use only
+	 * 
+	 * @param magnitude
+	 *            Magnitude to translate at
+	 * @param direction
+	 *            Direction to travel. Use radians relative to positive x-axis
+	 */
+	public void translate(double magnitude, double direction) {
+		double maximum = Math.max(
+				Math.max(Math.abs(Math.sin(direction)),
+						Math.abs(Math.cos(direction)))
+						* magnitude, 1);
+
+		// Use formulas to set wheel speeds.
+		m_frontRightMotor.set((magnitude * Math.cos(direction)) / maximum);
+		m_rearRightMotor.set((magnitude * -Math.sin(direction)) / maximum);
+		m_frontLeftMotor.set((magnitude * Math.sin(direction)) / maximum);
+		m_rearLeftMotor.set((magnitude * -Math.cos(direction)) / maximum);
+	}
+	
+	/**
+	 * Rotate at a given speed. Use value between -1.0 and 1.0
+	 * @param magnitude
+	 */
+	public void rotate(double magnitude) {
+		if (magnitude > 1 || magnitude < -1) {
+			
+		}
+		
+		m_frontRightMotor.set(magnitude);
+		m_rearRightMotor.set(magnitude);
+		m_frontLeftMotor.set(magnitude);
+		m_rearLeftMotor.set(magnitude);
 	}
 
 	/**
@@ -120,7 +146,8 @@ public class SingularityDrive extends RobotDrive {
 	 */
 	public void tankDrive(SingularityController controller,
 			double translationMultiplier, boolean squaredInputs) {
-		double left = -controller.getOuterIntake(), right = controller.getInnerIntake();
+		double left = -controller.getOuterIntake(), right = controller
+				.getInnerIntake();
 
 		if (squaredInputs) {
 			left *= Math.abs(left);
@@ -195,42 +222,14 @@ public class SingularityDrive extends RobotDrive {
 				.set(y * translationMultiplier - x * rotationMultiplier);
 	}
 
-	/**
-	 * Old version of mecanum drive. Only for backup purposes.
-	 */
-	public void oldDriveMecanumOldIsRedundant(Joystick js,
-			double translationMultiplier, double rotationMultiplier) {
-
-		// Find magnitude using pythagorean theorem
-		double magnitude = Math.sqrt(js.getX() * js.getX() + js.getY()
-				* js.getY())
-				* translationMultiplier;
-
-		// Find direction using arctan
-		double direction = Math.atan(-js.getY() / js.getX());
-		if (js.getX() < 0) {
-			direction += Math.PI;
-		}
-
-		// Use formulas to set wheel speeds.
-		m_frontRightMotor.set(magnitude * Math.sin(direction + Math.PI / 4)
-				+ js.getTwist() * rotationMultiplier);
-		m_rearRightMotor.set(magnitude * Math.cos(direction + Math.PI / 4)
-				- js.getTwist() * rotationMultiplier);
-		m_frontLeftMotor.set(magnitude * Math.cos(direction + Math.PI / 4)
-				+ js.getTwist() * rotationMultiplier);
-		m_rearLeftMotor.set(magnitude * Math.sin(direction + Math.PI / 4)
-				- js.getTwist() * rotationMultiplier);
-	}
-
 	public void forward() {
 		m_frontRightMotor.set(.5);
 		m_rearRightMotor.set(.5);
 		m_frontLeftMotor.set(-.5);
 		m_rearLeftMotor.set(-.5);
 	}
-	
-	public void backward(){
+
+	public void backward() {
 		m_frontRightMotor.set(-.5);
 		m_rearRightMotor.set(-.5);
 		m_frontLeftMotor.set(.5);
@@ -243,38 +242,65 @@ public class SingularityDrive extends RobotDrive {
 		m_frontLeftMotor.set(0);
 		m_rearLeftMotor.set(0);
 	}
-	public boolean turn(String direction){  //turns robot use clockwise or counterclockwise as direction. Returns whether succseful or not.
-		double turnVar=0;
-		if(direction.equals("clockwise")){
-			turnVar=-.5;
-		}else if(direction.equals("counterclockwise")){
-			turnVar=.5;
-		}else{return false;}
+
+	public boolean turn(String direction) { // turns robot use clockwise or
+											// counterclockwise as direction.
+											// Returns whether succseful or not.
+		double turnVar = 0;
+		if (direction.equals("clockwise")) {
+			turnVar = -.5;
+		} else if (direction.equals("counterclockwise")) {
+			turnVar = .5;
+		} else {
+			return false;
+		}
 		m_frontRightMotor.set(turnVar);
 		m_rearRightMotor.set(turnVar);
 		m_frontLeftMotor.set(turnVar);
 		m_rearLeftMotor.set(turnVar);
 		return true;
 	}
-/*Auton use. use: move([How long to move in milliseconds],[direction:clockwise,counterclockwise,forward,back,backwards],[wether to stop robot after moving])
-*/
-	public boolean move(int milSeconds,String direction,boolean stopAfter){ 
-		boolean result=true;
-		if(milSeconds>14999){return false;}
+
+	/*
+	 * Auton use. use: move([How long to move in
+	 * milliseconds],[direction:clockwise
+	 * ,counterclockwise,forward,back,backwards],[wether to stop robot after
+	 * moving])
+	 */
+	public boolean move(int milSeconds, String direction, boolean stopAfter) {
+		boolean result = true;
+		if (milSeconds > 14999) {
+			return false;
+		}
 		Calendar cal = Calendar.getInstance();
 		SimpleDateFormat mil = new SimpleDateFormat("ssmm");
-		boolean cont=true;
-		int start=0;
-		while(cont){
+		boolean cont = true;
+		int start = 0;
+		while (cont) {
 			start = Integer.parseInt(mil.format(cal.getTime()));
-			if(direction.equals("clockwise")||direction.equals("counterclockwise")){result=turn(direction);
-			}else if(direction.equals("forward")){forward();
-			}else if(direction.equals("back")||direction.equals("backwards")){backward();}else{return false;}
+			if (direction.equals("clockwise")
+					|| direction.equals("counterclockwise")) {
+				result = turn(direction);
+			} else if (direction.equals("forward")) {
+				forward();
+			} else if (direction.equals("back")
+					|| direction.equals("backwards")) {
+				backward();
+			} else {
+				return false;
+			}
 			milSeconds = Integer.parseInt(mil.format(cal.getTime())) - start;
-			if(Integer.parseInt(mil.format(cal.getTime()))-start<0){result=false;cont=false;}
-			if(milSeconds<=0){cont=false;}
+			if (Integer.parseInt(mil.format(cal.getTime())) - start < 0) {
+				result = false;
+				cont = false;
+			}
+			if (milSeconds <= 0) {
+				cont = false;
+			}
 		}
-		if(stopAfter==true){stop();}
+		if (stopAfter == true) {
+			stop();
+		}
 		return result;
 	}
 }

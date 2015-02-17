@@ -1,6 +1,5 @@
 package org.usfirst.frc.team5066.robot;
 
-import java.io.Console;
 import java.util.Collections;
 import java.util.List;
 

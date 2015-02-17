@@ -2,6 +2,7 @@ package org.usfirst.frc.team5066.robot;
 
 import java.io.IOException;
 import java.util.Properties;
+import java.io.PrintWriter;
 
 import org.salinerobotics.library.SingularityDrive;
 import org.salinerobotics.library.SingularityReader;
@@ -67,14 +68,19 @@ public class Robot extends IterativeRobot {
 	int mode;
 	boolean startWasPressed;
 
-	final double TRANSLATION_CONSTANT = 1, ROTATION_CONSTANT = 1;
+	final double TRANSLATION_CONSTANT = 1, ROTATION_CONSTANT = 0.5;
 	final String[] MODES = { "Mecanum", "Arcade", "Tank" };
 
 	Elevator elevator;
 
 	double intakeMultiplier;
-	
-	//Robot Init ==========================================================================================
+
+	PrintWriter pr;
+
+	int autonMode;
+
+	// Robot Init
+	// ==========================================================================================
 	public void robotInit() {
 		sr = new SingularityReader();
 		try {
@@ -92,8 +98,8 @@ public class Robot extends IterativeRobot {
 			backLeft = 5;
 			intakeInnerLeft = 2;
 			intakeInnerRight = 3;
-			intakeOuterLeft = 3; //CANTalon
-			intakeOuterRight = 4; //CANTalon
+			intakeOuterLeft = 3; // CANTalon
+			intakeOuterRight = 4; // CANTalon
 
 			us = new Ultrasonic(1, 0);
 			us.setEnabled(true);
@@ -107,32 +113,35 @@ public class Robot extends IterativeRobot {
 
 			intakeController = xbox;
 			movementController = logitech;
+
+			autonMode = 0;
 		}
 		// TODO delete Vision_2015
-		//cam1 = new Camera2015(cameraPort1, cameraQuality);
-		//cam1.initCameraForProcessing();
+		// cam1 = new Camera2015(cameraPort1, cameraQuality);
+		// cam1.initCameraForProcessing();
 		/*
 		 * for cam 2 cam2 = new Camera2015(cameraPort2, cameraQuality);
 		 * cam2.initCameraForProcessing();
 		 */
 		// initialize the intake properties
-		intake = new Intake(intakeOuterLeft, intakeOuterRight, intakeInnerLeft, intakeInnerRight);
+		intake = new Intake(intakeOuterLeft, intakeOuterRight, intakeInnerLeft,
+				intakeInnerRight);
 		// Initialize the camera, and start taking video
-		//cs = CameraServer.getInstance();
-		//cs.setQuality(cameraQuality);
-		//cs.startAutomaticCapture(cameraPort1);
-		
+		cs = CameraServer.getInstance();
+		cs.setQuality(cameraQuality);
+		cs.startAutomaticCapture(cameraPort1);
+
 		sd = new SingularityDrive(frontLeft, backLeft, frontRight, backRight);
 
 		movementJoystick = new Joystick(0);
 		intakeJoystick = new Joystick(1);
-		
-		if(driveMode == LOGITECH_DRIVE) {
+
+		if (driveMode == LOGITECH_DRIVE) {
 			movementController = new Logitech(movementJoystick, 0.04);
 			intakeController = new XBox(intakeJoystick, 0.15);
 		} else {
-			//SmartDashboard.put("Test", "XBox Time");
-			intakeController= new Logitech(movementJoystick, 0.04);
+			// SmartDashboard.put("Test", "XBox Time");
+			intakeController = new Logitech(movementJoystick, 0.04);
 			movementController = new XBox(intakeJoystick, 0.15);
 		}
 
@@ -141,13 +150,27 @@ public class Robot extends IterativeRobot {
 		startWasPressed = false;
 
 		elevator = new Elevator(2);
+
+		try {
+			pr = new PrintWriter("inputRead.txt", "UTF-8");
+		} catch (Exception e) {
+			System.exit(1);
+		}
 	}
 
 	/**
 	 * This function is called periodically during autonomous
 	 */
 	public void autonomousPeriodic() {
-		
+		switch (autonMode) {
+		case 1:
+
+			break;
+		case 2:
+			break;
+		default:
+			break;
+		}
 	}
 
 	/**
@@ -156,17 +179,6 @@ public class Robot extends IterativeRobot {
 	public void teleopPeriodic() {
 		// SmartDashboard.putNumber("Is enabled",0);
 		// cam.processImages();
-		// SmartDashboard.putNumber("Ultrasonic Range Inches",
-		// us.getRangeInches());
-		// SmartDashboard.putNumber("Ultrasonic Range MM", us.getRangeMM());
-		// if(us.isEnabled()){
-		// SmartDashboard.putNumber("Is enabled",1);
-
-		// }
-
-		/*
-		 * if(jsb2.get() == true) { intake.set(0.4); } else intake.set(0.0);
-		 */
 
 		if (movementController.getStart()) {
 			if (!startWasPressed) {
@@ -178,40 +190,34 @@ public class Robot extends IterativeRobot {
 			startWasPressed = false;
 		}
 
-		switch (mode) {
-		case 0:
-			sd.driveMecanum(movementController, TRANSLATION_CONSTANT,
-					ROTATION_CONSTANT, false);
-			break;
-		case 1:
-			sd.arcadeDrive(movementController, TRANSLATION_CONSTANT,
-					ROTATION_CONSTANT, false);
-			break;
-		case 2:
-			sd.tankDrive(intakeController, TRANSLATION_CONSTANT, false);
-			break;
-		default:
-			break;
-		}
+		// Keep this if you want to live. Also if you want to have three
+		// (sqrt(!4)) drive modes.
+		/*
+		 * switch (mode) { case 0: sd.driveMecanum(movementController,
+		 * TRANSLATION_CONSTANT, ROTATION_CONSTANT, false); break; case 1:
+		 * sd.arcadeDrive(movementController, TRANSLATION_CONSTANT,
+		 * ROTATION_CONSTANT, false); break; case 2:
+		 * sd.tankDrive(intakeController, TRANSLATION_CONSTANT, false); break;
+		 * default: break; }
+		 */
 
-		// while (movementController.getAButton()) {
-		// sd.forward();
-		// }
-		// sd.stop();
+		sd.driveMecanum(movementController, TRANSLATION_CONSTANT,
+				ROTATION_CONSTANT, false);
 
 		intakeMultiplier = SmartDashboard.getNumber("Intake Speed");
 		intake.setOuter(intakeController.getOuterIntake() * intakeMultiplier);
 		intake.setInner(intakeController.getInnerIntake() * intakeMultiplier);
-		
-		//elevator.set(intakeController.getElevatorUp() - intakeController.getElevatorDown());
-		
-		//SmartDashboard.putNumber("Math", intakeController.getElevatorUp() - intakeController.getElevatorDown());
 
 		elevator.set(intakeController.getElevator());
 
-		SmartDashboard.putNumber("Z Axis", movementController.getZ());
-		SmartDashboard.putNumber("Y Axis", movementController.getY());
 		SmartDashboard.putNumber("X Axis", movementController.getX());
+		SmartDashboard.putNumber("Y Axis", movementController.getY());
+		SmartDashboard.putNumber("Z Axis", movementController.getZ());
+
+		SmartDashboard.putNumber("Ultrasonic test", rf.findRangeInches());
+
+		pr.println(movementController.getX() + ", " + movementController.getY()
+				+ ", " + movementController.getZ() + ", ");
 	}
 
 	/**
@@ -235,9 +241,11 @@ public class Robot extends IterativeRobot {
 		frontRight = Integer.parseInt(prop.getProperty("talonFrontRight"));
 		backRight = Integer.parseInt(prop.getProperty("talonBackRight"));
 		intakeInnerLeft = Integer.parseInt(prop.getProperty("intakeInnerLeft"));
-		intakeInnerRight = Integer.parseInt(prop.getProperty("intakeInnerRight"));
+		intakeInnerRight = Integer.parseInt(prop
+				.getProperty("intakeInnerRight"));
 		intakeOuterLeft = Integer.parseInt(prop.getProperty("intakeOuterLeft"));
-		intakeOuterRight = Integer.parseInt(prop.getProperty("intakeOuterRight"));
+		intakeOuterRight = Integer.parseInt(prop
+				.getProperty("intakeOuterRight"));
 
 		us = new Ultrasonic(1, 0);
 		us.setEnabled(true);
@@ -250,6 +258,9 @@ public class Robot extends IterativeRobot {
 
 		driveMode = Integer.parseInt(prop.getProperty("driveMode"));
 
+		// auton properties
+		autonMode = Integer.parseInt(prop.getProperty("autonMode"));
+
 		if (driveMode == LOGITECH_DRIVE) {
 			intakeController = xbox;
 			movementController = logitech;
@@ -257,6 +268,8 @@ public class Robot extends IterativeRobot {
 			intakeController = logitech;
 			movementController = xbox;
 		}
+
+		rf = new RangeFinder(Integer.parseInt(prop.getProperty("rangeFinder")));
 
 		SmartDashboard.putString("Properties Loaded", "successfully");
 	}

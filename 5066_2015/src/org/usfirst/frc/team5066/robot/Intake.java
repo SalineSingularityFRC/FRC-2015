@@ -32,7 +32,7 @@ public class Intake {
 	 * 
 	 * @param speed Speed to set the motors at. Use parameter between -1.0 and 1.0
 	 */
-	public void setInner(double speed) {
+	public void setInner(double speed) { 
 		leftInner.set(-speed);
 		rightInner.set(speed);
 	}
