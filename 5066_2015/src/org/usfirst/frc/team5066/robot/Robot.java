@@ -39,7 +39,7 @@ public class Robot extends IterativeRobot {
 	private int backLeft, backRight, frontLeft, frontRight, intakeInnerLeft,
 			intakeInnerRight, intakeOuterLeft, intakeOuterRight;
 	private int cameraQuality;
-	private String cameraPort1, cameraPort2;
+	private String cameraPort1;
 
 	// create ultrasonic object
 	Ultrasonic us;
@@ -107,7 +107,6 @@ public class Robot extends IterativeRobot {
 			// Initialize the camera properties
 			cameraQuality = 50;
 			cameraPort1 = "cam0";
-			cameraPort2 = "cam1";
 
 			rf = new RangeFinder(0);
 
@@ -127,9 +126,9 @@ public class Robot extends IterativeRobot {
 		intake = new Intake(intakeOuterLeft, intakeOuterRight, intakeInnerLeft,
 				intakeInnerRight);
 		// Initialize the camera, and start taking video
-		cs = CameraServer.getInstance();
-		cs.setQuality(cameraQuality);
-		cs.startAutomaticCapture(cameraPort1);
+		// cs = CameraServer.getInstance();
+		// cs.setQuality(cameraQuality);
+		// cs.startAutomaticCapture(cameraPort1);
 
 		sd = new SingularityDrive(frontLeft, backLeft, frontRight, backRight);
 
@@ -180,15 +179,11 @@ public class Robot extends IterativeRobot {
 		// SmartDashboard.putNumber("Is enabled",0);
 		// cam.processImages();
 
-		if (movementController.getStart()) {
-			if (!startWasPressed) {
-				mode = (mode + 1) % 3;
-				SmartDashboard.putString("Mode", MODES[mode]);
-			}
-			startWasPressed = true;
-		} else {
-			startWasPressed = false;
-		}
+		/*
+		 * if (movementController.getStart()) { if (!startWasPressed) { mode =
+		 * (mode + 1) % 3; SmartDashboard.putString("Mode", MODES[mode]); }
+		 * startWasPressed = true; } else { startWasPressed = false; }
+		 */
 
 		// Keep this if you want to live. Also if you want to have three
 		// (sqrt(!4)) drive modes.
@@ -201,14 +196,16 @@ public class Robot extends IterativeRobot {
 		 * default: break; }
 		 */
 
-		sd.driveMecanum(movementController, TRANSLATION_CONSTANT,
-				ROTATION_CONSTANT, false);
+		// sd.driveMecanum(movementController, TRANSLATION_CONSTANT,
+		// ROTATION_CONSTANT, false);
 
 		intakeMultiplier = SmartDashboard.getNumber("Intake Speed");
-		intake.setOuter(intakeController.getOuterIntake() * intakeMultiplier);
-		intake.setInner(intakeController.getInnerIntake() * intakeMultiplier);
+		// intake.setOuter(intakeController.getOuterIntake() *
+		// intakeMultiplier);
+		// intake.setInner(intakeController.getInnerIntake() *
+		// intakeMultiplier);
 
-		elevator.set(intakeController.getElevator());
+		// elevator.set(intakeController.getElevator());
 
 		SmartDashboard.putNumber("X Axis", movementController.getX());
 		SmartDashboard.putNumber("Y Axis", movementController.getY());
@@ -216,8 +213,8 @@ public class Robot extends IterativeRobot {
 
 		SmartDashboard.putNumber("Ultrasonic test", rf.findRangeInches());
 
-		pr.println(movementController.getX() + ", " + movementController.getY()
-				+ ", " + movementController.getZ() + ", ");
+		pr.println(movementController.getX() + "\t" + movementController.getY()
+				+ "\t" + movementController.getZ());
 	}
 
 	/**
@@ -253,8 +250,6 @@ public class Robot extends IterativeRobot {
 		// initialize camera
 		cameraQuality = Integer.parseInt(prop.getProperty("cameraQuality"));
 		cameraPort1 = prop.getProperty("cameraID");
-		// for cam 2
-		cameraPort2 = prop.getProperty("cameraID2");
 
 		driveMode = Integer.parseInt(prop.getProperty("driveMode"));
 
@@ -269,7 +264,7 @@ public class Robot extends IterativeRobot {
 			movementController = xbox;
 		}
 
-		rf = new RangeFinder(Integer.parseInt(prop.getProperty("rangeFinder")));
+		rf = new RangeFinder(Integer.parseInt(prop.getProperty("rfPort")));
 
 		SmartDashboard.putString("Properties Loaded", "successfully");
 	}
