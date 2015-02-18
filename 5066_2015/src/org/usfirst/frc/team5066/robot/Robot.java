@@ -31,7 +31,7 @@ public class Robot extends IterativeRobot {
 
 	// Create stuff for camera
 	private int cameraQuality;
-	private String cameraPort1;
+	private String cameraPort;
 	CameraServer cs;
 
 	// Create integer for ultrasonic sensor
@@ -48,7 +48,7 @@ public class Robot extends IterativeRobot {
 
 	// Create integers for TalonSR and TalonSRX ports
 	private int backLeft, backRight, frontLeft, frontRight, intakeInnerLeft,
-			intakeInnerRight, intakeOuterLeft, intakeOuterRight;
+			intakeInnerRight, intakeOuterLeft, intakeOuterRight, elevatorPort;
 
 	// Create output (elevator, intakes, and chassis drive) objects
 	Elevator elevator;
@@ -94,6 +94,7 @@ public class Robot extends IterativeRobot {
 			backLeft = 5;
 
 			// CANTalons
+			elevatorPort = 2;
 			intakeInnerLeft = 3;
 			intakeInnerRight = 4;
 
@@ -103,7 +104,7 @@ public class Robot extends IterativeRobot {
 
 			// Initialize the camera properties
 			cameraQuality = 50;
-			cameraPort1 = "cam0";
+			cameraPort = "cam0";
 
 			intakeController = xbox;
 			movementController = logitech;
@@ -113,6 +114,7 @@ public class Robot extends IterativeRobot {
 			timerDelay = 0.005;
 		} finally {
 			SmartDashboard.putString("Properties Loaded", "successfully");
+			SmartDashboard.putNumber("Timer Delay", timerDelay);
 		}
 
 		// TODO delete Vision_2015
@@ -120,7 +122,7 @@ public class Robot extends IterativeRobot {
 		// Initialize the camera, and start taking video
 		cs = CameraServer.getInstance();
 		cs.setQuality(cameraQuality);
-		cs.startAutomaticCapture(cameraPort1);
+		cs.startAutomaticCapture(cameraPort);
 
 		// Initialize the user inputs.
 		movementJoystick = new Joystick(0);
@@ -136,7 +138,7 @@ public class Robot extends IterativeRobot {
 		}
 
 		// Initialize the robot movements.
-		elevator = new Elevator(2, rfPort);
+		elevator = new Elevator(elevatorPort, rfPort);
 		intake = new Intake(intakeOuterLeft, intakeOuterRight, intakeInnerLeft,
 				intakeInnerRight);
 		sd = new SingularityDrive(frontLeft, backLeft, frontRight, backRight);
@@ -251,13 +253,14 @@ public class Robot extends IterativeRobot {
 		intakeOuterLeft = Integer.parseInt(prop.getProperty("intakeOuterLeft"));
 		intakeOuterRight = Integer.parseInt(prop
 				.getProperty("intakeOuterRight"));
+		elevatorPort = Integer.parseInt(prop.getProperty("elevator"));
 
 		// Range finder port
 		rfPort = Integer.parseInt(prop.getProperty("rfPort"));
 
 		// Initialize camera
 		cameraQuality = Integer.parseInt(prop.getProperty("cameraQuality"));
-		cameraPort1 = prop.getProperty("cameraID");
+		cameraPort = prop.getProperty("cameraID");
 
 		// Auton properties
 		autonMode = Integer.parseInt(prop.getProperty("autonMode"));
@@ -275,7 +278,6 @@ public class Robot extends IterativeRobot {
 
 		// Timer delay
 		timerDelay = Double.parseDouble(prop.getProperty("timerDelay"));
-		SmartDashboard.putNumber("Timer Delay", timerDelay);
 
 		SmartDashboard.putString("Properties Loaded", "successfully");
 	}

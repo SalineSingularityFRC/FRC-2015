@@ -37,7 +37,7 @@ public class Intake {
 		rightInner.set(speed);
 	}
 	public void setOuter(double speed) {
-		leftOuter.set(speed);
-		rightOuter.set(-speed);
+		leftOuter.set(-speed);
+		rightOuter.set(speed);
 	}
 }
