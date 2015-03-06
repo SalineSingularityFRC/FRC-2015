@@ -9,6 +9,8 @@ import org.salinerobotics.library.controller.Logitech;
 import org.salinerobotics.library.controller.SingularityController;
 import org.salinerobotics.library.controller.XBox;
 
+import com.ni.vision.VisionException;
+
 import edu.wpi.first.wpilibj.CameraServer;
 import edu.wpi.first.wpilibj.IterativeRobot;
 import edu.wpi.first.wpilibj.Joystick;
@@ -32,8 +34,7 @@ public class Robot extends IterativeRobot {
 	// Create stuff for camera
 	private int cameraQuality;
 	private String cameraPort;
-	CameraServer cs;
-
+	private Camera2015 cam;
 	// Create integer for ultrasonic sensor
 	private int rfPort;
 
@@ -71,6 +72,7 @@ public class Robot extends IterativeRobot {
 	double timerDelay;
 	int autonMode;
 
+	CameraServer cs;
 	/**
 	 * This function is run when the robot is first started up and should be
 	 * used for any initialization code.
@@ -115,15 +117,22 @@ public class Robot extends IterativeRobot {
 		} finally {
 			SmartDashboard.putString("Properties Loaded", "successfully");
 			SmartDashboard.putNumber("Timer Delay", timerDelay);
+			try{
+				cam = new Camera2015(cameraPort, cameraQuality);
+			}
+			catch(VisionException e) {
+				e.printStackTrace();
+			}
 		}
 
 		// TODO delete Vision_2015
 
-		// Initialize the camera, and start taking video
+//		// Initialize the camera, and start taking video
 		cs = CameraServer.getInstance();
 		cs.setQuality(cameraQuality);
 		cs.startAutomaticCapture(cameraPort);
-
+		
+		
 		// Initialize the user inputs.
 		movementJoystick = new Joystick(0);
 		intakeJoystick = new Joystick(1);
@@ -159,11 +168,17 @@ public class Robot extends IterativeRobot {
 	 */
 	public void autonomousPeriodic() {
 		switch (autonMode) {
+		case 0:
+			//Don't put anything in this case!
+			break;
 		case 1:
+			autonMode=0;
 			break;
 		case 2:
+			autonMode=0;
 			break;
 		default:
+			autonMode=0;
 			break;
 		}
 	}
@@ -277,7 +292,8 @@ public class Robot extends IterativeRobot {
 		}
 
 		// Timer delay
-		timerDelay = Double.parseDouble(prop.getProperty("timerDelay"));
+		//timerDelay = Double.parseDouble(prop.getProperty("timerDelay"));
+		//SmartDashboard.putString(timerDelay, prop.getProperty("timerDelay"));
 
 		SmartDashboard.putString("Properties Loaded", "successfully");
 	}
