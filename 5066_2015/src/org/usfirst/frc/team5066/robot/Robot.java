@@ -168,6 +168,7 @@ public class Robot extends IterativeRobot {
 	 */
 	public void autonomousPeriodic() {
 		switch (autonMode) {
+		//After every case that you don't want to repeat put autonMode=0;
 		case 0:
 			//Don't put anything in this case!
 			break;
