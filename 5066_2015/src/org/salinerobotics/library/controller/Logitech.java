@@ -58,7 +58,7 @@ public class Logitech implements SingularityController{
 	}
 	
 	public double getElevator() {
-		return joystick.getY();
+		return joystick.getX();
 	}
 	
 	private double eliminateSmall(double x) {

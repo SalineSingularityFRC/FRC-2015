@@ -41,11 +41,13 @@ public class Robot extends IterativeRobot {
 	// Create integers for input controllers and settings
 	Joystick movementJoystick, intakeJoystick;
 	SingularityController intakeController, movementController;
+	/* What is this even used for????
 	XBox xbox;
 	Logitech logitech;
+	*/
 
 	int controlMode, driveMode;
-	int LOGITECH_DRIVE = 0, XBOX_DRIVE = 1;
+	int LOGITECH_DRIVE = 0, XBOX_DRIVE = 1, DUAL_LOGITECH_DRIVE = 2;
 
 	// Create integers for TalonSR and TalonSRX ports
 	private int backLeft, backRight, frontLeft, frontRight, intakeInnerLeft,
@@ -108,8 +110,10 @@ public class Robot extends IterativeRobot {
 			cameraQuality = 50;
 			cameraPort = "cam0";
 
+			/*
 			intakeController = xbox;
 			movementController = logitech;
+			*/
 
 			autonMode = 0;
 
@@ -138,10 +142,16 @@ public class Robot extends IterativeRobot {
 		intakeJoystick = new Joystick(1);
 
 		if (driveMode == LOGITECH_DRIVE) {
+			SmartDashboard.putString("Initializing Controllers", "Movement: Logitech Joystick; Intake: Xbox");
 			movementController = new Logitech(movementJoystick, 0.04);
 			intakeController = new XBox(intakeJoystick, 0.15);
+		} else if (driveMode == DUAL_LOGITECH_DRIVE) {
+			SmartDashboard.putString("Initializing Controllers", "Dual Logitech Joysticks");
+			intakeController = new Logitech(intakeJoystick, 0.04);
+			movementController = new Logitech(movementJoystick, 0.04);
 		} else {
-			// SmartDashboard.put("Test", "XBox Time");
+			SmartDashboard.putString("Test", "XBox Time");
+			SmartDashboard.putString("Initializing Controllers", "Movement: Xbox; Intake: Logitech Joystick");
 			intakeController = new Logitech(movementJoystick, 0.04);
 			movementController = new XBox(intakeJoystick, 0.15);
 		}
@@ -214,13 +224,14 @@ public class Robot extends IterativeRobot {
 		intake.setOuter(intakeController.getOuterIntake() * intakeMultiplier);
 		intake.setInner(intakeController.getInnerIntake() * intakeMultiplier);
 
-		elevator.set(intakeController.getElevator());
 		elevator.getRangeInches();
 
 		SmartDashboard.putNumber("X Axis", movementController.getX());
 		SmartDashboard.putNumber("Y Axis", movementController.getY());
 		SmartDashboard.putNumber("Z Axis", movementController.getZ());
 
+		elevator.set(intakeController.getElevator());
+		
 		// Avoid sending commands to the robot too quickly
 		Timer.delay(timerDelay);
 	}
@@ -284,13 +295,18 @@ public class Robot extends IterativeRobot {
 		// Teleop control properties
 		driveMode = Integer.parseInt(prop.getProperty("driveMode"));
 
+		/*
 		if (driveMode == LOGITECH_DRIVE) {
 			intakeController = xbox;
 			movementController = logitech;
-		} else {
+		} else if (driveMode == XBOX_DRIVE){
 			intakeController = logitech;
 			movementController = xbox;
+		} else {
+			intakeController = logitech;
+			
 		}
+		*/
 
 		// Timer delay
 		//timerDelay = Double.parseDouble(prop.getProperty("timerDelay"));

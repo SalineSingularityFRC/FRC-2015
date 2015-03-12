@@ -70,7 +70,7 @@ public class XBox implements SingularityController {
 	}
 
 	public double getElevator() {
-		return joystick.getRawAxis(3) - joystick.getRawAxis(2);
+		return joystick.getRawAxis(2) - joystick.getRawAxis(3);
 	}
 
 	private double eliminateSmall(double x) {
