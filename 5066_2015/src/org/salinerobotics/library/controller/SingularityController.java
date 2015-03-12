@@ -5,6 +5,8 @@ package org.salinerobotics.library.controller;
 public interface SingularityController {
 	//Joystick joystick;
 	
+	final static int LOGITECH = 0, XBOX = 1;
+	
 	public double getX();
 	public double getY();
 	public double getZ();
@@ -17,4 +19,6 @@ public interface SingularityController {
 	public double getInnerIntake();
 	
 	public boolean getStart();
+	
+	public int getControllerType();;
 }

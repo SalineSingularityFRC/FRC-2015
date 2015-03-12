@@ -68,4 +68,8 @@ public class Logitech implements SingularityController{
 			return 0;
 		}
 	}
+	
+	public int getControllerType() {
+		return SingularityController.LOGITECH;
+	}
 }

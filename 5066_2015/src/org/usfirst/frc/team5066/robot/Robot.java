@@ -41,10 +41,9 @@ public class Robot extends IterativeRobot {
 	// Create integers for input controllers and settings
 	Joystick movementJoystick, intakeJoystick;
 	SingularityController intakeController, movementController;
-	/* What is this even used for????
-	XBox xbox;
-	Logitech logitech;
-	*/
+	/*
+	 * What is this even used for???? XBox xbox; Logitech logitech;
+	 */
 
 	int controlMode, driveMode;
 	int LOGITECH_DRIVE = 0, XBOX_DRIVE = 1, DUAL_LOGITECH_DRIVE = 2;
@@ -75,6 +74,12 @@ public class Robot extends IterativeRobot {
 	int autonMode;
 
 	CameraServer cs;
+
+	// Recording Stuff
+	Recorder recorder;
+	boolean recording, move;
+	String recordingsFolderURL;
+
 	/**
 	 * This function is run when the robot is first started up and should be
 	 * used for any initialization code.
@@ -111,47 +116,52 @@ public class Robot extends IterativeRobot {
 			cameraPort = "cam0";
 
 			/*
-			intakeController = xbox;
-			movementController = logitech;
-			*/
+			 * intakeController = xbox; movementController = logitech;
+			 */
 
 			autonMode = 0;
+
+			move = true;
 
 			timerDelay = 0.005;
 		} finally {
 			SmartDashboard.putString("Properties Loaded", "successfully");
 			SmartDashboard.putNumber("Timer Delay", timerDelay);
-			try{
+			try {
 				cam = new Camera2015(cameraPort, cameraQuality);
-			}
-			catch(VisionException e) {
+			} catch (VisionException e) {
 				e.printStackTrace();
 			}
+
 		}
 
-		// TODO delete Vision_2015
+		// TODO FiX tHiS fROm CrASHING WiTh NiViSiON ExCEPtIOn
+		// Initialize the camera, and start taking video
+		/*
+		 * cs = CameraServer.getInstance(); cs.setQuality(cameraQuality);
+		 * cs.startAutomaticCapture(cameraPort);
+		 */
 
-//		// Initialize the camera, and start taking video
-		cs = CameraServer.getInstance();
-		cs.setQuality(cameraQuality);
-		cs.startAutomaticCapture(cameraPort);
-		
-		
+		// TODO Add functionality for switching joysticks without rebooring
+		// robot
 		// Initialize the user inputs.
 		movementJoystick = new Joystick(0);
 		intakeJoystick = new Joystick(1);
 
 		if (driveMode == LOGITECH_DRIVE) {
-			SmartDashboard.putString("Initializing Controllers", "Movement: Logitech Joystick; Intake: Xbox");
+			SmartDashboard.putString("Initializing Controllers",
+					"Movement: Logitech Joystick; Intake: Xbox");
 			movementController = new Logitech(movementJoystick, 0.04);
 			intakeController = new XBox(intakeJoystick, 0.15);
 		} else if (driveMode == DUAL_LOGITECH_DRIVE) {
-			SmartDashboard.putString("Initializing Controllers", "Dual Logitech Joysticks");
+			SmartDashboard.putString("Initializing Controllers",
+					"Dual Logitech Joysticks");
 			intakeController = new Logitech(intakeJoystick, 0.04);
 			movementController = new Logitech(movementJoystick, 0.04);
 		} else {
 			SmartDashboard.putString("Test", "XBox Time");
-			SmartDashboard.putString("Initializing Controllers", "Movement: Xbox; Intake: Logitech Joystick");
+			SmartDashboard.putString("Initializing Controllers",
+					"Movement: Xbox; Intake: Logitech Joystick");
 			intakeController = new Logitech(movementJoystick, 0.04);
 			movementController = new XBox(intakeJoystick, 0.15);
 		}
@@ -169,6 +179,11 @@ public class Robot extends IterativeRobot {
 
 		// Don't reapply the properties yet, but keep the option open
 		SmartDashboard.putBoolean("Reapply Properties", false);
+
+		// Recordings
+		recording = false;
+		recorder = new Recorder(recordingsFolderURL, movementController,
+				intakeController);
 	}
 
 	/**
@@ -178,18 +193,18 @@ public class Robot extends IterativeRobot {
 	 */
 	public void autonomousPeriodic() {
 		switch (autonMode) {
-		//After every case that you don't want to repeat put autonMode=0;
+		// After every case that you don't want to repeat put autonMode=0;
 		case 0:
-			//Don't put anything in this case!
+			// Don't put anything in this case!
 			break;
 		case 1:
-			autonMode=0;
+			autonMode = 0;
 			break;
 		case 2:
-			autonMode=0;
+			autonMode = 0;
 			break;
 		default:
-			autonMode=0;
+			autonMode = 0;
 			break;
 		}
 	}
@@ -197,6 +212,11 @@ public class Robot extends IterativeRobot {
 	/**
 	 * This function is called periodically during operator control
 	 */
+
+	public void teleopInit() {
+		recorder.initializeOutput();
+	}
+
 	public void teleopPeriodic() {
 		// SmartDashboard.putNumber("Is enabled",0);
 		// cam.processImages();
@@ -217,12 +237,17 @@ public class Robot extends IterativeRobot {
 		 * default: break; }
 		 */
 
-		sd.driveMecanum(movementController, TRANSLATION_CONSTANT,
-				ROTATION_CONSTANT, false);
+		if (move) {
+			sd.driveMecanum(movementController, TRANSLATION_CONSTANT,
+					ROTATION_CONSTANT, false);
+			intakeMultiplier = SmartDashboard.getNumber("Intake Speed");
+			intake.setOuter(intakeController.getOuterIntake()
+					* intakeMultiplier);
+			intake.setInner(intakeController.getInnerIntake()
+					* intakeMultiplier);
 
-		intakeMultiplier = SmartDashboard.getNumber("Intake Speed");
-		intake.setOuter(intakeController.getOuterIntake() * intakeMultiplier);
-		intake.setInner(intakeController.getInnerIntake() * intakeMultiplier);
+			elevator.set(intakeController.getElevator());
+		}
 
 		elevator.getRangeInches();
 
@@ -230,10 +255,15 @@ public class Robot extends IterativeRobot {
 		SmartDashboard.putNumber("Y Axis", movementController.getY());
 		SmartDashboard.putNumber("Z Axis", movementController.getZ());
 
-		elevator.set(intakeController.getElevator());
-		
+		recorder.appendOutput();
+
 		// Avoid sending commands to the robot too quickly
 		Timer.delay(timerDelay);
+
+	}
+
+	public void disabledInit() {
+		recorder.finalizeOutput();
 	}
 
 	/**
@@ -295,22 +325,22 @@ public class Robot extends IterativeRobot {
 		// Teleop control properties
 		driveMode = Integer.parseInt(prop.getProperty("driveMode"));
 
+		// Recordings
+		recordingsFolderURL = prop.getProperty("recordingsFolderURL");
+		move = Boolean.parseBoolean(prop.getProperty("move"));
+
 		/*
-		if (driveMode == LOGITECH_DRIVE) {
-			intakeController = xbox;
-			movementController = logitech;
-		} else if (driveMode == XBOX_DRIVE){
-			intakeController = logitech;
-			movementController = xbox;
-		} else {
-			intakeController = logitech;
-			
-		}
-		*/
+		 * if (driveMode == LOGITECH_DRIVE) { intakeController = xbox;
+		 * movementController = logitech; } else if (driveMode == XBOX_DRIVE){
+		 * intakeController = logitech; movementController = xbox; } else {
+		 * intakeController = logitech;
+		 * 
+		 * }
+		 */
 
 		// Timer delay
-		//timerDelay = Double.parseDouble(prop.getProperty("timerDelay"));
-		//SmartDashboard.putString(timerDelay, prop.getProperty("timerDelay"));
+		// timerDelay = Double.parseDouble(prop.getProperty("timerDelay"));
+		// SmartDashboard.putString(timerDelay, prop.getProperty("timerDelay"));
 
 		SmartDashboard.putString("Properties Loaded", "successfully");
 	}
