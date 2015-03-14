@@ -11,42 +11,58 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 public class Reader {
 	BufferedReader br;
 	FileReader fr;
-	
 
-	ArrayList<String[]> cassetteTape = new ArrayList<String[]>();
-	
+	ArrayList<double[]> cassetteTape = new ArrayList<double[]>();
+	int lineCount;
+
 	Reader(String fileURL) throws IOException {
-		
-		
+
 		try {
 			fr = new FileReader(fileURL);
 			br = new BufferedReader(fr);
 			SmartDashboard.putString("File reader", "Reading from: " + fileURL);
 		} catch (FileNotFoundException e) {
 			SmartDashboard.putString("File reader", "File not opened properly");
+			return;
 		}
 
-		String[] buffer=new String[4];
-		String nulChecker="";
-		int lineCount=-1;
-		//decode.add("1");
-		//decode.get(0);
-		//decode.set(0, "2");
+		String[] buffer = new String[4];
+		String lineRead;
+		lineCount = 0;
 		boolean keepGoing = true;
-		
+		double[] convertedBuffer = new double[4];
+
 		while (keepGoing) {
-			lineCount+=1;
-			nulChecker = br.readLine();
-			if (nulChecker==null){keepGoing=false;}else{
-				buffer=nulChecker.split(",");
-				cassetteTape.set(lineCount,buffer);
+			lineRead = br.readLine();
+			if (lineRead == null) {
+				keepGoing = false;
+			} else {
+				buffer = lineRead.split(",");
+				
+				for (int i = 0; i < 5; i++) {
+					convertedBuffer[i] = Double.parseDouble(buffer[i]);
+				}
+
+				cassetteTape.add(convertedBuffer);
+				lineCount++;
 			}
 		}
-		if(lineCount==0){SmartDashboard.putString("File reader", "No Data");}
-			
-		
+		if (lineCount == 0) {
+			SmartDashboard.putString("File reader", "No Data");
 		}
-		
-		
-		
+		SmartDashboard.putNumber("File Reader Test", getLine(3, false)[3]);
+
 	}
+
+	public double[] getLine(int LineNumber, boolean difference) {
+		if (difference) {
+			double[] result = cassetteTape.get(LineNumber);
+			result[4] = (cassetteTape.get(LineNumber)[4])
+					- (cassetteTape.get(LineNumber - 1)[4]);
+			return result;
+		} else {
+			return cassetteTape.get(LineNumber);
+		}
+	}
+
+}

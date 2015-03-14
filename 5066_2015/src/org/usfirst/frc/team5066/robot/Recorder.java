@@ -6,16 +6,15 @@ import java.io.PrintWriter;
 
 import org.salinerobotics.library.controller.SingularityController;
 
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
-
 public class Recorder {
 	FileWriter fileWriter;
 	PrintWriter printWriter;
 	String outputURL;
 	SingularityController driveController, intakeController;
 
-	int count;
+	long firstTime;
 	double x, y, z, previousX, previousY, previousZ;
+	String previousToAdd;
 
 	public Recorder(String savesFolder, SingularityController driveController,
 			SingularityController intakeController) {
@@ -30,36 +29,32 @@ public class Recorder {
 			fileWriter = new FileWriter("/test", false);
 			printWriter = new PrintWriter(fileWriter);
 
-			count = 1;
-
-			printWriter.println("#" + System.nanoTime());
+			printWriter.println("#" + System.currentTimeMillis());
 		} catch (IOException e) {
-			// SmartDashboard.putString("Test", "It Failed");
 			e.printStackTrace();
 		}
+		firstTime = System.currentTimeMillis();
 	}
 
-	public void appendOutput() {
-		x = driveController.getX();
-		y = driveController.getY();
-		z = driveController.getZ();
-
-		if (previousX == x && previousY == y && previousZ == z) {
-			count++;
-		} else {
-			printWriter.println(previousX + "," + previousY + "," + previousZ
-					+ "," + count + "," + System.nanoTime());
-			previousX = x;
-			previousY = y;
-			previousZ = z;
-			count = 1;
+	public void appendOutput(String[] data) {
+		String toAdd = "";
+		for (int i = 0; i < data.length; i++) {
+			toAdd += data[i] + ",";
 		}
 
+		if (!previousToAdd.equals(toAdd)) {
+			printWriter.println(toAdd
+					+ (System.currentTimeMillis() > firstTime ? System
+							.currentTimeMillis() - firstTime
+							: "Time Unavailable"));
+			previousToAdd = toAdd;
+		}
 	}
 
 	public void finalizeOutput() {
 		if (printWriter != null) {
-			printWriter.println(x + "," + y + "," + z + "," + count);
+			printWriter.println(previousToAdd
+					+ (System.currentTimeMillis() - firstTime));
 			printWriter.close();
 		}
 	}

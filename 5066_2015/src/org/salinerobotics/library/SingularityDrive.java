@@ -45,21 +45,25 @@ public class SingularityDrive extends RobotDrive {
 	/**
 	 * Mecanum drive using one (1) joystick
 	 * 
-	 * @param js
-	 *            Joystick to use
+	 * @param x
+	 *            Translation magnitude in x direction
+	 * @param y
+	 *            Translation magnitude in y direction
+	 * @param z
+	 *            Rotation magnitude
 	 * @param translationMultiplier
 	 *            How quickly to translate (0 - 1)
 	 * @param rotationMultiplier
 	 *            How quickly to rotate (0 - 1)
 	 * @param squaredInputs
 	 *            Uses squared inputs if it's true
+	 * @return Returns the actual translation and rotation values
 	 */
-	public void driveMecanum(SingularityController controller,
+	public void driveMecanum(double x, double y, double z,
 			double translationMultiplier, double rotationMultiplier,
 			boolean squaredInputs) {
 
-		double x = controller.getX(), y = controller.getY(), z = controller
-				.getZ() * rotationMultiplier, magnitude, direction, maximum;
+		double translationMagnitude, direction, maximum, rotationMagnitude;
 
 		// If squaredInputs square the inputs
 		if (squaredInputs) {
@@ -68,36 +72,36 @@ public class SingularityDrive extends RobotDrive {
 			z *= Math.abs(z);
 		}
 
-		// Find magnitude using pythagorean theorem
-		magnitude = Math.sqrt((x * x) + (y * y)) * translationMultiplier;
+		// Find magnitudes and direction using pythagorean theorem and atan2
+		translationMagnitude = Math.sqrt((x * x) + (y * y))
+				* translationMultiplier;
+		rotationMagnitude = z * rotationMultiplier;
+		direction = Math.PI / 4 + Math.atan2(y, x);
 
-		// Find direction using arctan
-		direction = Math.atan(y / x);
-		if (x < 0) {
-			direction += Math.PI;
-		} else if (x == 0) {
-			if (y > 0) {
-				direction = Math.PI / 2;
-			} else {
-				direction = 3 * Math.PI / 2;
-			}
-		}
-		direction += Math.PI / 4;
-
-		maximum = Math.max(
-				Math.max(Math.abs(Math.sin(direction)),
+		// Account for too high of inputs (cannot have a motor go at 2.0 speed)
+		maximum = Math
+				.max(Math.max(Math.abs(Math.sin(direction)),
 						Math.abs(Math.cos(direction)))
-						* magnitude + Math.abs(z), 1);
+						* translationMagnitude + Math.abs(rotationMagnitude), 1);
 
-		// Use formulas to set wheel speeds.
-		m_frontRightMotor.set((magnitude * Math.cos(direction) + z) / maximum);
-		m_rearRightMotor.set((magnitude * -Math.sin(direction) + z) / maximum);
-		m_frontLeftMotor.set((magnitude * Math.sin(direction) + z) / maximum);
-		m_rearLeftMotor.set((magnitude * -Math.cos(direction) + z) / maximum);
+		// Use formulas to set wheel speeds. See the GitHub wiki for more
+		// information
+		m_frontRightMotor
+				.set((translationMagnitude * Math.cos(direction) + rotationMagnitude)
+						/ maximum);
+		m_rearRightMotor
+				.set((translationMagnitude * -Math.sin(direction) + rotationMagnitude)
+						/ maximum);
+		m_frontLeftMotor
+				.set((translationMagnitude * Math.sin(direction) + rotationMagnitude)
+						/ maximum);
+		m_rearLeftMotor
+				.set((translationMagnitude * -Math.cos(direction) + rotationMagnitude)
+						/ maximum);
 	}
 
 	/**
-	 * Translate. For auton use only
+	 * Translate at a certain magnitude and direction
 	 * 
 	 * @param magnitude
 	 *            Magnitude to translate at
@@ -105,31 +109,17 @@ public class SingularityDrive extends RobotDrive {
 	 *            Direction to travel. Use radians relative to positive x-axis
 	 */
 	public void translate(double magnitude, double direction) {
-		double maximum = Math.max(
-				Math.max(Math.abs(Math.sin(direction)),
-						Math.abs(Math.cos(direction)))
-						* magnitude, 1);
-
-		// Use formulas to set wheel speeds.
-		m_frontRightMotor.set((magnitude * Math.cos(direction)) / maximum);
-		m_rearRightMotor.set((magnitude * -Math.sin(direction)) / maximum);
-		m_frontLeftMotor.set((magnitude * Math.sin(direction)) / maximum);
-		m_rearLeftMotor.set((magnitude * -Math.cos(direction)) / maximum);
+		driveMecanum(magnitude * Math.cos(direction),
+				magnitude * Math.sin(direction), 0, 0.75, 0, false);
 	}
-	
+
 	/**
 	 * Rotate at a given speed. Use value between -1.0 and 1.0
+	 * 
 	 * @param magnitude
 	 */
 	public void rotate(double magnitude) {
-		if (magnitude > 1 || magnitude < -1) {
-			
-		}
-		
-		m_frontRightMotor.set(magnitude);
-		m_rearRightMotor.set(magnitude);
-		m_frontLeftMotor.set(magnitude);
-		m_rearLeftMotor.set(magnitude);
+		driveMecanum(0, 0, magnitude, 0, 0.75, false);
 	}
 
 	/**
@@ -243,9 +233,14 @@ public class SingularityDrive extends RobotDrive {
 		m_rearLeftMotor.set(0);
 	}
 
-	public boolean turn(String direction) { // turns robot use clockwise or
-											// counterclockwise as direction.
-											// Returns whether succseful or not.
+	/**
+	 * Rotate clockwise or counterclockwise
+	 * 
+	 * @param direction
+	 *            Direction to turn in
+	 * @return sucsessfulness
+	 */
+	public boolean turn(String direction) {
 		double turnVar = 0;
 		if (direction.equals("clockwise")) {
 			turnVar = -.5;
@@ -261,11 +256,16 @@ public class SingularityDrive extends RobotDrive {
 		return true;
 	}
 
-	/*
-	 * Auton use. use: move([How long to move in
-	 * milliseconds],[direction:clockwise
-	 * ,counterclockwise,forward,back,backwards],[wether to stop robot after
-	 * moving])
+	/**
+	 * Used for general movement
+	 * 
+	 * @param milSeconds
+	 *            How long to more in milliseconds
+	 * @param direction
+	 *            Direction to turn
+	 * @param stopAfter
+	 *            Whether or not to stop the robot after command has executed
+	 * @return
 	 */
 	public boolean move(int milSeconds, String direction, boolean stopAfter) {
 		boolean result = true;
