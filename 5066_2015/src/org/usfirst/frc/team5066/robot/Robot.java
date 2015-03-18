@@ -76,11 +76,16 @@ public class Robot extends IterativeRobot {
 	CameraServer cs;
 
 	// Recording Stuff
-	Recorder movementRecorder, intakeRecorder, elevatorRecorder;
-	Player movementPlayer, intakePlayer, elevatorPlayer;
+	Recorder movementRecorder, innerIntakeRecorder, outerIntakeRecorder,
+			elevatorRecorder;
+	Player movementPlayer, innerIntakePlayer, outerIntakePlayer,
+			elevatorPlayer;
 
 	boolean recording, robotMotion, play;
-	String recordingsFolderURL;
+	String recordingsURL;
+
+	// Used to store initial time from enable for playback of motion
+	long initialTime;
 
 	/**
 	 * This function is run when the robot is first started up and should be
@@ -91,8 +96,14 @@ public class Robot extends IterativeRobot {
 	 * (see try-catch-finally block). Next, we initialize more variables, which
 	 * are mostly dependent on the now initialize properties.
 	 */
+
+	// ROBOT INIT
 	public void robotInit() {
 		sr = new SingularityReader();
+
+		movementPlayer = new Player("/test");
+		movementPlayer.dumpRecording();
+
 		try {
 			applyProperties(sr.readProperties(PROP_FILE_URL));
 		} catch (IOException e) {
@@ -114,7 +125,6 @@ public class Robot extends IterativeRobot {
 			intakeOuterRight = 2;
 
 			// Initialize the camera properties
-			cameraQuality = 50;
 			cameraPort = "cam0";
 
 			/*
@@ -150,6 +160,7 @@ public class Robot extends IterativeRobot {
 		// TODO Add functionality for switching joysticks without rebooring
 		// robot
 		// Initialize the user inputs.
+		cameraQuality = 50;
 		movementJoystick = new Joystick(0);
 		intakeJoystick = new Joystick(1);
 
@@ -191,12 +202,20 @@ public class Robot extends IterativeRobot {
 		 * Auto-generated catch block e.printStackTrace(); }
 		 */
 		if (recording) {
-			movementRecorder = new Recorder(recordingsFolderURL,
-					movementController, intakeController);
+			movementRecorder = new Recorder(recordingsURL);
+			innerIntakeRecorder = new Recorder(recordingsURL);
+			outerIntakeRecorder = new Recorder(recordingsURL);
+			elevatorRecorder = new Recorder(recordingsURL);
 		}
-		movementPlayer = new Player("/test");
-
 		SmartDashboard.putString("Line Number", "0");
+
+	}
+
+	public void autonomousInit() {
+		if (play) {
+			initialTime = System.currentTimeMillis();
+			runCommands(movementPlayer);
+		}
 	}
 
 	/**
@@ -227,32 +246,28 @@ public class Robot extends IterativeRobot {
 	 */
 
 	public void teleopInit() {
-		String[] motion;
-		int max;
-		long nextTime, initialTime, firstTime;
-
 		if (recording) {
 			movementRecorder.initializeOutput();
 		}
+	}
 
-		if (play) {
-			initialTime = System.currentTimeMillis();
-			firstTime = Long.parseLong(movementPlayer.get(0)[3]);
-			max = Math.max(Math.max(movementPlayer.getLines(),
-					intakePlayer.getLines()), elevatorPlayer.getLines());
-			for (int i = 0; i < movementPlayer.getLines() - 1; i++) {
-				nextTime = Long.parseLong(movementPlayer.get(i + 1)[3]);
-				
-				motion = movementPlayer.get(i);
+	public void runCommands(Player player) {
+		long firstTime = Long.parseLong(player.get(0)[3]), nextTime;
+		String motion[];
 
-				while (System.currentTimeMillis() - initialTime < nextTime
-						- firstTime) {
-					// Motion command magnitude (-1-0-+1): x = motion[0]; y= motion[1]; z = motion[2]
-					sd.driveMecanum(Double.parseDouble(motion[0]),
-							Double.parseDouble(motion[1]),
-							Double.parseDouble(motion[2]), TRANSLATION_CONSTANT,
-							ROTATION_CONSTANT, false);
-				}
+		for (int i = 0; i < player.getLines() - 1; i++) {
+			nextTime = Long.parseLong(player.get(i + 1)[3]);
+
+			motion = player.get(i);
+
+			while (System.currentTimeMillis() - initialTime < nextTime
+					- firstTime) {
+				// Motion command magnitude (-1-0-+1): x = motion[0]; y=
+				// motion[1]; z = motion[2]
+				sd.driveMecanum(Double.parseDouble(motion[0]),
+						Double.parseDouble(motion[1]),
+						Double.parseDouble(motion[2]), TRANSLATION_CONSTANT,
+						ROTATION_CONSTANT, true);
 			}
 		}
 	}
@@ -280,7 +295,7 @@ public class Robot extends IterativeRobot {
 		if (robotMotion) {
 			sd.driveMecanum(movementController.getX(),
 					movementController.getY(), movementController.getZ(),
-					TRANSLATION_CONSTANT, ROTATION_CONSTANT, false);
+					TRANSLATION_CONSTANT, ROTATION_CONSTANT, true);
 			intakeMultiplier = SmartDashboard.getNumber("Intake Speed");
 			intake.setOuter(intakeController.getOuterIntake()
 					* intakeMultiplier);
@@ -297,14 +312,16 @@ public class Robot extends IterativeRobot {
 		SmartDashboard.putNumber("Z Axis", movementController.getZ());
 
 		if (recording) {
-			movementRecorder.appendOutput(new String[] {
-					Double.toString(movementController.getX()),
-					Double.toString(movementController.getY()),
-					Double.toString(movementController.getZ()) });
-			intakeRecorder.appendOutput(new String[] {
-					Double.toString(intakeController.getInnerIntake()),
-					Double.toString(intakeController.getOuterIntake()) });
-			elevatorRecorder.appendOutput(new String[] { Double
+			movementRecorder.appendOutput(
+					"mo",
+					new String[] { Double.toString(movementController.getX()),
+							Double.toString(movementController.getY()),
+							Double.toString(movementController.getZ()) });
+			outerIntakeRecorder.appendOutput("oa", new String[] { Double
+					.toString(intakeController.getOuterIntake()) });
+			innerIntakeRecorder.appendOutput("ia", new String[] { Double
+					.toString(intakeController.getInnerIntake()) });
+			elevatorRecorder.appendOutput("el", new String[] { Double
 					.toString(intakeController.getElevator()) });
 		}
 
@@ -316,6 +333,9 @@ public class Robot extends IterativeRobot {
 	public void disabledInit() {
 		if (recording) {
 			movementRecorder.finalizeOutput();
+			innerIntakeRecorder.finalizeOutput();
+			outerIntakeRecorder.finalizeOutput();
+			elevatorRecorder.finalizeOutput();
 		}
 	}
 
@@ -324,6 +344,10 @@ public class Robot extends IterativeRobot {
 	 */
 	public void testPeriodic() {
 		checkToReapplyProperties();
+		if (play) {
+			initialTime = System.currentTimeMillis();
+			runCommands(movementPlayer);
+		}
 	}
 
 	private void checkToReapplyProperties() {
@@ -380,10 +404,15 @@ public class Robot extends IterativeRobot {
 
 		// Recordings
 		recording = Boolean.parseBoolean(prop.getProperty("record"));
-		recordingsFolderURL = prop.getProperty("recordingsFolderURL");
+		recordingsURL = prop.getProperty("recordingsURL");
+		SmartDashboard.putString("URL", recordingsURL);
 		robotMotion = Boolean.parseBoolean(prop.getProperty("move"));
 
 		play = Boolean.parseBoolean(prop.getProperty("play"));
+		SmartDashboard.putBoolean("Step 1",
+				Boolean.parseBoolean(prop.getProperty("dumpRecording")));
+		movementPlayer.setDumpRecording(Boolean.parseBoolean(prop
+				.getProperty("dumpRecording")));
 
 		/*
 		 * if (driveMode == LOGITECH_DRIVE) { intakeController = xbox;

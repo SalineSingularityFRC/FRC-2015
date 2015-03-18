@@ -11,6 +11,7 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 public class Player {
 	private ArrayList<String[]> commands;
 	private int lines;
+	private boolean dumpRecording;
 
 	public Player(String fileURL) {
 		BufferedReader br;
@@ -22,7 +23,7 @@ public class Player {
 		lines = 0;
 		
 		try {
-			fr = new FileReader(fileURL);
+			fr = new FileReader("/test");
 			br = new BufferedReader(fr);
 
 			stringBuffer = br.readLine();
@@ -41,9 +42,19 @@ public class Player {
 			SmartDashboard.putString("Player", "Input/Output Error");
 			return;
 		}
-		SmartDashboard.putString("Player", "File sucessfully loaded");
+		SmartDashboard.putString("Player", "Playback file sucessfully loaded");
+		SmartDashboard.putBoolean("Dump Recording?", dumpRecording);
 	}
 
+	public void setDumpRecording(boolean dump) {
+		dumpRecording = dump;
+	}
+	public void dumpRecording() {
+		if(dumpRecording) {
+			SmartDashboard.putString("Recording Dump", commands.toString());
+		}
+	}
+	
 	public String[] get(int index) {
 		try {
 			return commands.get(index);
