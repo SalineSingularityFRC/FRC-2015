@@ -10,7 +10,7 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 public class Player {
 	private ArrayList<String[]> commands;
-	private int lines;
+	private int lines, currentIndex;
 	private boolean dumpRecording;
 
 	public Player(String fileURL) {
@@ -21,6 +21,7 @@ public class Player {
 
 		commands = new ArrayList<String[]>();
 		lines = 0;
+		currentIndex = 0;
 
 		try {
 			fr = new FileReader(fileURL);
@@ -29,7 +30,7 @@ public class Player {
 			stringBuffer = br.readLine();
 
 			while (stringBuffer != null) {
-				if (!stringBuffer.isEmpty() && stringBuffer.charAt(0) != '#') {
+				if (!stringBuffer.isEmpty() && stringBuffer.charAt(0) != '#' && !stringBuffer.substring(0, 2).equals("el")) {
 					commands.add(stringBuffer.split(","));
 					lines++;
 				}
@@ -63,9 +64,26 @@ public class Player {
 		try {
 			return commands.get(index);
 		} catch (IndexOutOfBoundsException ioobe) {
-			return new String[] { "U R FAILURE", "", "", "", "", "" };
+			return new String[] { "U R FAILURE" };
 		}
 	}
+
+	public String[] get(int index, int type) {
+		try {
+			return commands.get(index);
+		} catch (IndexOutOfBoundsException ioobe) {
+			return new String[] { "U R FAILURE" };
+		}
+	}
+
+	/*
+	 * public String[] get(int time, boolean restartSearch) { if (restartSearch)
+	 * { currentIndex = 0; }
+	 * 
+	 * for(int i = currentIndex; i < commands.get())
+	 * 
+	 * return new String[]{}; }
+	 */
 
 	public int getLines() {
 		return lines;

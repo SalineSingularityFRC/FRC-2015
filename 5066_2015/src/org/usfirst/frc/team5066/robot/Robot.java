@@ -63,7 +63,7 @@ public class Robot extends IterativeRobot {
 	// final String[] MODES = { "Mecanum", "Arcade", "Tank" };
 
 	// Create movement constants. These edit the max speeds.
-	final double TRANSLATION_CONSTANT = .7, ROTATION_CONSTANT = .7;
+	final double TRANSLATION_CONSTANT = .7, ROTATION_CONSTANT = .7, ELEVATOR_CONSTANT = 0.6;
 
 	// Create intake speed constant. This edits the max speed, and is editable
 	// in the SmartDashboard
@@ -80,8 +80,7 @@ public class Robot extends IterativeRobot {
 	Player movementPlayer, elevatorPlayer;
 
 	boolean recording, robotMotion, play;
-	String recordingsURL;
-	int fileType;
+	String recordingsURL, fileType;
 
 	// Used to store initial time from enable for playback of motion
 	long initialTime;
@@ -254,15 +253,15 @@ public class Robot extends IterativeRobot {
 	public void runCommands(Player player) {
 		final int movX = 1, movY = 2, movZ = 3, movTime = 4;
 
-		SmartDashboard.putNumber("Commands Test", player.get(0).length);
+		//SmartDashboard.putNumber("Commands Test", player.get(0).length);
 		long firstTime = Long.parseLong(player.get(0)[movTime]), nextTime;
 		String motion[];
 
-		for (int i = 0; i < player.getLines() - 1; i++) {
+		for (int i = 0; i < player.getLines() - 2; i++) {
 			nextTime = Long.parseLong(player.get(i + 1)[movTime]);
 
 			motion = player.get(i);
-
+			SmartDashboard.putString("Auton test", player.get(i)[movTime]);
 			while (System.currentTimeMillis() - initialTime < nextTime
 					- firstTime) {
 				// Motion command magnitude (-1-0-+1): x = motion[0]; y=
@@ -299,13 +298,7 @@ public class Robot extends IterativeRobot {
 			sd.driveMecanum(movementController.getX(),
 					movementController.getY(), movementController.getZ(),
 					TRANSLATION_CONSTANT, ROTATION_CONSTANT, true);
-			intakeMultiplier = SmartDashboard.getNumber("Intake Speed");
-			intake.setOuter(intakeController.getOuterIntake()
-					* intakeMultiplier);
-			intake.setInner(intakeController.getInnerIntake()
-					* intakeMultiplier);
-
-			elevator.set(intakeController.getElevator());
+			elevator.set(intakeController.getElevator() * Math.abs(intakeController.getElevator()) * ELEVATOR_CONSTANT);
 		}
 
 		elevator.getRangeInches();
@@ -410,15 +403,16 @@ public class Robot extends IterativeRobot {
 
 		// Recordings
 		recording = Boolean.parseBoolean(prop.getProperty("record"));
-		recordingsURL = prop.getProperty("recordingsURL");
+
+		fileType = prop.getProperty("fileType");
+		recordingsURL = prop.getProperty("recordingsURL") + "." + fileType;
 		SmartDashboard.putString("URL", recordingsURL);
+		
 		robotMotion = Boolean.parseBoolean(prop.getProperty("move"));
 
 		play = Boolean.parseBoolean(prop.getProperty("play"));
 		SmartDashboard.putBoolean("Step 1",
 				Boolean.parseBoolean(prop.getProperty("dumpRecording")));
-		
-		fileType = Integer.parseInt(prop.getProperty("fileType"));
 		// movementPlayer.setDumpRecording(Boolean.parseBoolean(prop
 		// .getProperty("dumpRecording")));
 

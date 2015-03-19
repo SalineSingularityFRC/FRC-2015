@@ -19,10 +19,10 @@ public class Recorder {
 	private ArrayList<String> queue;
 	private boolean initialized;
 
-	public static final int CSV = 0, JSON = 1;
-	private int fileType;
+	public static final String CSV = "csv", JSON = "json";
+	private String fileType;
 
-	public Recorder(String fileName, int fileType) {
+	public Recorder(String fileName, String fileType) {
 		initialized = false;
 		this.outputURL = fileName;
 		this.fileType = fileType;
@@ -36,8 +36,7 @@ public class Recorder {
 
 	public void addJSONHead() {
 		queue.add("{\"recordings\" :");
-		queue.add("\t{\"starttime\" : "
-				+ System.currentTimeMillis() + ",");
+		queue.add("\t{\"starttime\" : " + System.currentTimeMillis() + ",");
 		queue.add("\t \"actions\" : [");
 	}
 
@@ -68,7 +67,7 @@ public class Recorder {
 
 	public void appendOutput(String key, String[] data) {
 		String entry = "";
-		if (fileType == CSV) {
+		if (fileType.equals(CSV)) {
 			for (int i = 0; i < data.length; i++) {
 				entry += data[i] + ",";
 			}
@@ -92,14 +91,14 @@ public class Recorder {
 			} else if (previous.isEmpty()) {
 				previous = entry;
 			}
-		} else if (fileType == JSON) {
+		} else if (fileType.equals(JSON)) {
 			for (int i = 0; i < data.length; i++) {
 				entry += data[i] + ",";
 			}
 
 			if (!previous.equals(entry) && !previous.isEmpty()) {
-				queue.add("\t\t{\"" + key + "\"," + entry
-						+ (System.currentTimeMillis() - firstTime) + "},");
+				queue.add("\t\t{\"" + key + "\" : [" + entry
+						+ (System.currentTimeMillis() - firstTime) + "]},");
 				SmartDashboard.putString(key, entry);
 				previous = entry;
 			} else if (previous.isEmpty()) {
@@ -133,17 +132,26 @@ public class Recorder {
 	public void finalizeOutput(boolean end) {
 		if (initialized) {
 			try {
-				fileWriter = new FileWriter(outputURL, true);
+				if (fileType.equals(JSON)) {
+					fileWriter = new FileWriter(outputURL, true);
+				} else {
+					fileWriter = new FileWriter(outputURL, true);
+				}
 				printWriter = new PrintWriter(fileWriter);
 
 				for (String str : queue) {
 					printWriter.println(str);
 				}
 				if (end) {
-					printWriter.println("\t\t{\"null\"" + "," + previous
-							+ (System.currentTimeMillis() - firstTime)
-							+ "}");
-					printWriter.println("\t\t]\n\t}\n}");
+					if (fileType.equals(JSON)) {
+						printWriter.println("\t\t{\"null\"," + previous
+								+ (System.currentTimeMillis() - firstTime)
+								+ "}");
+						printWriter.println("\t\t]\n\t}\n}");
+					} else {
+						printWriter.println("null," + previous
+								+ (System.currentTimeMillis() - firstTime));
+					}
 				}
 
 				printWriter.close();
