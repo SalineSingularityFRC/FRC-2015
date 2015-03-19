@@ -212,6 +212,10 @@ public class SingularityDrive extends RobotDrive {
 				.set(y * translationMultiplier - x * rotationMultiplier);
 	}
 
+	public void metankum() {
+		
+	}
+	
 	public void forward() {
 		m_frontRightMotor.set(.5);
 		m_rearRightMotor.set(.5);

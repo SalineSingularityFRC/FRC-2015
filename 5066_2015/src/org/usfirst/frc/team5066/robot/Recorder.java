@@ -4,75 +4,109 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 //import java.io.StringWriter;
-//import java.util.ArrayList;
+import java.util.ArrayList;
 
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 public class Recorder {
-	FileWriter fileWriter;
-	PrintWriter printWriter;
-	String outputURL;
+	private FileWriter fileWriter;
+	private PrintWriter printWriter;
+	private String outputURL;
 
-	long firstTime;
-	double x, y, z, previousX, previousY, previousZ;
-	String previous = "";
+	private long firstTime;
+	private String previous = "";
 
-	public Recorder(String fileName) {
+	private ArrayList<String> queue;
+	private boolean initialized;
+
+	public static final int CSV = 0, JSON = 1;
+	private int fileType;
+
+	public Recorder(String fileName, int fileType) {
+		initialized = false;
 		this.outputURL = fileName;
-
+		this.fileType = fileType;
+		queue = new ArrayList<String>();
 	}
 
 	public void initializeOutput() {
-		try {
-			fileWriter = new FileWriter(outputURL, false);
-			printWriter = new PrintWriter(fileWriter);
-			printWriter.println("#" + System.currentTimeMillis());
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
+		initialized = true;
 		firstTime = System.currentTimeMillis();
 	}
 
-	// TODO add counter again. Also fix the repeated outputs
-
-	public void appendOutput(String[] data) {
-		String toAdd = "";
-		for (int i = 0; i < data.length; i++) {
-			toAdd += data[i] + ",";
-		}
-
-		if (!previous.equals(toAdd) && !previous.isEmpty()) {
-			printWriter.println(toAdd
-					+ (System.currentTimeMillis() > firstTime ? System
-							.currentTimeMillis() - firstTime
-							: "Time Unavailable"));
-			previous = toAdd;
-		}
-
-		if (previous.isEmpty()) {
-			previous = toAdd;
-		}
+	public void addJSONHead() {
+		queue.add("{\"recordings\" :");
+		queue.add("\t{\"starttime\" : "
+				+ System.currentTimeMillis() + ",");
+		queue.add("\t \"actions\" : [");
 	}
+
+	public void addTimestamp() {
+		queue.add("#" + System.currentTimeMillis());
+	}
+
+	// TODO add counter again.
+
+	// public void appendOutput(String[] data) {
+	// String toAdd = "";
+	// for (int i = 0; i < data.length; i++) {
+	// toAdd += data[i] + ",";
+	// }
+	//
+	// if (!previous.equals(toAdd) && !previous.isEmpty()) {
+	// printWriter.println(toAdd
+	// + (System.currentTimeMillis() > firstTime ? System
+	// .currentTimeMillis() - firstTime
+	// : "Time Unavailable"));
+	// previous = toAdd;
+	// }
+	//
+	// if (previous.isEmpty()) {
+	// previous = toAdd;
+	// }
+	// }
 
 	public void appendOutput(String key, String[] data) {
 		String entry = "";
-		for (int i = 0; i < data.length; i++) {
-			entry += data[i] + ",";
-		}
+		if (fileType == CSV) {
+			for (int i = 0; i < data.length; i++) {
+				entry += data[i] + ",";
+			}
 
-		if (!previous.equals(entry) && !previous.isEmpty()) {
-		//	try {
-				printWriter.println(key + "," + entry
+			if (!previous.equals(entry) && !previous.isEmpty()) {
+				queue.add(key + "," + entry
 						+ (System.currentTimeMillis() - firstTime));
-		/*	} catch (NullPointerException npe) {
-				StringWriter sw = new StringWriter();
-				PrintWriter pw = new PrintWriter(sw);
-				npe.printStackTrace(pw);
-				SmartDashboard.putString("Test", sw.toString());
-			}*/
-			previous = entry;
-		} else if (previous.isEmpty()) {
-			previous = entry;
+				SmartDashboard.putString(key, entry);
+				previous = entry;
+
+				/*
+				 * try { printWriter.println(key + "," + entry +
+				 * (System.currentTimeMillis() - firstTime));
+				 * 
+				 * } catch (NullPointerException npe) { StringWriter sw = new
+				 * StringWriter(); PrintWriter pw = new PrintWriter(sw);
+				 * npe.printStackTrace(pw); SmartDashboard.putString("Test",
+				 * sw.toString()); }
+				 */
+
+			} else if (previous.isEmpty()) {
+				previous = entry;
+			}
+		} else if (fileType == JSON) {
+			for (int i = 0; i < data.length; i++) {
+				entry += data[i] + ",";
+			}
+
+			if (!previous.equals(entry) && !previous.isEmpty()) {
+				queue.add("\t\t{\"" + key + "\"," + entry
+						+ (System.currentTimeMillis() - firstTime) + "},");
+				SmartDashboard.putString(key, entry);
+				previous = entry;
+			} else if (previous.isEmpty()) {
+				previous = entry;
+			}
+		} else {
+
 		}
 	}
 
@@ -96,11 +130,27 @@ public class Recorder {
 	 * (pairs.get(i)[0].equals(key)) { pairs.get(i)[1] = entry; return pairs; }
 	 * } pairs.add(new String[] { key, entry }); return pairs; }
 	 */
-	public void finalizeOutput() {
-		if (printWriter != null) {
-			printWriter.println(previous
-					+ (System.currentTimeMillis() - firstTime));
-			printWriter.close();
+	public void finalizeOutput(boolean end) {
+		if (initialized) {
+			try {
+				fileWriter = new FileWriter(outputURL, true);
+				printWriter = new PrintWriter(fileWriter);
+
+				for (String str : queue) {
+					printWriter.println(str);
+				}
+				if (end) {
+					printWriter.println("\t\t{\"null\"" + "," + previous
+							+ (System.currentTimeMillis() - firstTime)
+							+ "}");
+					printWriter.println("\t\t]\n\t}\n}");
+				}
+
+				printWriter.close();
+				fileWriter.close();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
 		}
 	}
 }

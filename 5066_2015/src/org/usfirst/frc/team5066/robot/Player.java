@@ -21,9 +21,9 @@ public class Player {
 
 		commands = new ArrayList<String[]>();
 		lines = 0;
-		
+
 		try {
-			fr = new FileReader("/test");
+			fr = new FileReader(fileURL);
 			br = new BufferedReader(fr);
 
 			stringBuffer = br.readLine();
@@ -35,6 +35,9 @@ public class Player {
 				}
 				stringBuffer = br.readLine();
 			}
+
+			br.close();
+			fr.close();
 		} catch (FileNotFoundException fnfe) {
 			SmartDashboard.putString("Player", "File Not Found");
 			return;
@@ -49,20 +52,21 @@ public class Player {
 	public void setDumpRecording(boolean dump) {
 		dumpRecording = dump;
 	}
+
 	public void dumpRecording() {
-		if(dumpRecording) {
+		if (dumpRecording) {
 			SmartDashboard.putString("Recording Dump", commands.toString());
 		}
 	}
-	
+
 	public String[] get(int index) {
 		try {
 			return commands.get(index);
 		} catch (IndexOutOfBoundsException ioobe) {
-			return new String[] {"U R FAILURE"};
+			return new String[] { "U R FAILURE", "", "", "", "", "" };
 		}
 	}
-	
+
 	public int getLines() {
 		return lines;
 	}
