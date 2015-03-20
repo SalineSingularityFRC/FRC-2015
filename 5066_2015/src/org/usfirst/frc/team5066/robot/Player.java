@@ -13,8 +13,8 @@ public class Player {
 	private int lines, currentIndex;
 	private boolean dumpRecording;
 	// public final int MOTION = 0, ELEVATOR = 1;
-	public final int MOTION_X = 1, MOTION_Y = 2, MOTION_Z = 3, ELEVATOR = 4;
-	private final int MOTION_X_INDEX = 1, MOTION_Y_INDEX = 2, MOTION_Z_INDEX = 3, ELEVATOR_INDEX = 1;
+	public static final int MOTION_X = 1, MOTION_Y = 2, MOTION_Z = 3, ELEVATOR = 4;
+	private static final int MOTION_X_INDEX = 1, MOTION_Y_INDEX = 2, MOTION_Z_INDEX = 3, ELEVATOR_INDEX = 1;
 
 	public Player(String fileURL) {
 		BufferedReader br;
@@ -87,7 +87,7 @@ public class Player {
 		}
 	}
 
-	public double get(int time, int valueToGet, boolean restartSearch) {
+	public double get(long time, int valueToGet, boolean restartSearch) {
 		String[] current;
 
 		if (restartSearch) {
@@ -96,7 +96,7 @@ public class Player {
 		switch (valueToGet) {
 		case MOTION_X:
 			for (int i = currentIndex; i < motionCommands.size(); i++) {
-				current = motionCommands.get(i);
+				current = motionCommands.get(i); 
 				if (Integer.parseInt(current[current.length - 1]) > time) {
 					currentIndex = i;
 					return Double.parseDouble(current[MOTION_X_INDEX]);

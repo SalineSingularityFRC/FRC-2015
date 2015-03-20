@@ -23,15 +23,22 @@ public class Recorder {
 	private String fileType;
 
 	public Recorder(String fileName, String fileType) {
-		initialized = false;
 		this.outputURL = fileName;
 		this.fileType = fileType;
+		
 		queue = new ArrayList<String>();
+		initialized = false;
 	}
 
-	public void initializeOutput() {
-		initialized = true;
-		firstTime = System.currentTimeMillis();
+	public ArrayList<String> getQueue() {
+		return queue;
+	}
+	
+	public void initializeRecorder(long firstTime) {
+		if (!initialized) {
+			initialized = true;
+			this.firstTime = firstTime;
+		}
 	}
 
 	public void addJSONHead() {
@@ -68,6 +75,7 @@ public class Recorder {
 	public void appendOutput(String key, String[] data) {
 		String entry = "";
 		if (fileType.equals(CSV)) {
+			// This block is for CSV
 			for (int i = 0; i < data.length; i++) {
 				entry += data[i] + ",";
 			}
@@ -77,21 +85,11 @@ public class Recorder {
 						+ (System.currentTimeMillis() - firstTime));
 				SmartDashboard.putString(key, entry);
 				previous = entry;
-
-				/*
-				 * try { printWriter.println(key + "," + entry +
-				 * (System.currentTimeMillis() - firstTime));
-				 * 
-				 * } catch (NullPointerException npe) { StringWriter sw = new
-				 * StringWriter(); PrintWriter pw = new PrintWriter(sw);
-				 * npe.printStackTrace(pw); SmartDashboard.putString("Test",
-				 * sw.toString()); }
-				 */
-
 			} else if (previous.isEmpty()) {
 				previous = entry;
 			}
 		} else if (fileType.equals(JSON)) {
+			//This block is for json
 			for (int i = 0; i < data.length; i++) {
 				entry += data[i] + ",";
 			}
@@ -99,7 +97,7 @@ public class Recorder {
 			if (!previous.equals(entry) && !previous.isEmpty()) {
 				queue.add("\t\t{\"" + key + "\" : [" + entry
 						+ (System.currentTimeMillis() - firstTime) + "]},");
-				SmartDashboard.putString(key, entry);
+				SmartDashboard.putNumber("TEST" + key, firstTime);
 				previous = entry;
 			} else if (previous.isEmpty()) {
 				previous = entry;
@@ -132,11 +130,7 @@ public class Recorder {
 	public void finalizeOutput(boolean end) {
 		if (initialized) {
 			try {
-				if (fileType.equals(JSON)) {
-					fileWriter = new FileWriter(outputURL, true);
-				} else {
-					fileWriter = new FileWriter(outputURL, true);
-				}
+				fileWriter = new FileWriter(outputURL, true);
 				printWriter = new PrintWriter(fileWriter);
 
 				for (String str : queue) {

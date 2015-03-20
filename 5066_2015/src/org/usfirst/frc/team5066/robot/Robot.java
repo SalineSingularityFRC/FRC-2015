@@ -78,6 +78,7 @@ public class Robot extends IterativeRobot {
 	// Recording Stuff
 	Recorder movementRecorder, elevatorRecorder;
 	Player movementPlayer, elevatorPlayer;
+	Writer myWriter;
 
 	boolean recording, robotMotion, play;
 	String recordingsURL, fileType;
@@ -197,6 +198,7 @@ public class Robot extends IterativeRobot {
 		 * Auto-generated catch block e.printStackTrace(); }
 		 */
 		if (recording) {
+			myWriter = new Writer(recordingsURL, fileType);
 			movementRecorder = new Recorder(recordingsURL, fileType);
 			elevatorRecorder = new Recorder(recordingsURL, fileType);
 		}
@@ -205,8 +207,6 @@ public class Robot extends IterativeRobot {
 	}
 
 	public void autonomousInit() {
-		
-		
 		if (play) {
 			movementPlayer = new Player(recordingsURL);
 			movementPlayer.dumpRecording();
@@ -244,11 +244,9 @@ public class Robot extends IterativeRobot {
 
 	public void teleopInit() {
 		if (recording) {
-			if (fileType == Recorder.JSON) {
-				movementRecorder.addJSONHead();
-			}
-			movementRecorder.initializeOutput();
-			elevatorRecorder.initializeOutput();
+			myWriter.initializeOutput();
+			movementRecorder.initializeRecorder(myWriter.getFirstTime());
+			elevatorRecorder.initializeRecorder(myWriter.getFirstTime());
 		}
 	}
 
@@ -326,8 +324,9 @@ public class Robot extends IterativeRobot {
 
 	public void disabledInit() {
 		if (recording) {
-			movementRecorder.finalizeOutput(false);
-			elevatorRecorder.finalizeOutput(true);
+			myWriter.writeQueue(movementRecorder.getQueue());
+			myWriter.writeQueue(elevatorRecorder.getQueue());
+			myWriter.finalizeOutput();
 		}
 	}
 
