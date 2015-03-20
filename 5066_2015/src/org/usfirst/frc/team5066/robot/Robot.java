@@ -205,6 +205,8 @@ public class Robot extends IterativeRobot {
 	}
 
 	public void autonomousInit() {
+		
+		
 		if (play) {
 			movementPlayer = new Player(recordingsURL);
 			movementPlayer.dumpRecording();
