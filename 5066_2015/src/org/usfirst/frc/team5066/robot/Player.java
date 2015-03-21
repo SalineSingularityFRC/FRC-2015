@@ -12,15 +12,19 @@ public class Player {
 	private ArrayList<String[]> motionCommands, elevatorCommands;
 	private int lines, currentIndex;
 	private boolean dumpRecording;
-	// public final int MOTION = 0, ELEVATOR = 1;
-	public static final int MOTION_X = 1, MOTION_Y = 2, MOTION_Z = 3, ELEVATOR = 4;
-	private static final int MOTION_X_INDEX = 1, MOTION_Y_INDEX = 2, MOTION_Z_INDEX = 3, ELEVATOR_INDEX = 1;
+	private String fileType, recording;
+	public static final int MOTION_X = 1, MOTION_Y = 2, MOTION_Z = 3,
+			ELEVATOR = 4;
+	private static final int MOTION_X_INDEX = 1, MOTION_Y_INDEX = 2,
+			MOTION_Z_INDEX = 3, ELEVATOR_INDEX = 1;
 
-	public Player(String fileURL) {
+	public Player(String fileURL, String fileType) {
 		BufferedReader br;
 		FileReader fr;
 
 		String stringBuffer;
+
+		this.fileType = fileType;
 
 		motionCommands = new ArrayList<String[]>();
 		elevatorCommands = new ArrayList<String[]>();
@@ -33,18 +37,30 @@ public class Player {
 
 			stringBuffer = br.readLine();
 
-			while (stringBuffer != null) {
-				if (!stringBuffer.isEmpty() && stringBuffer.charAt(0) != '#'
-						&& !stringBuffer.substring(0, 2).equals("el")) {
-					if (stringBuffer.substring(0, 2).equals("mo")) {
-						motionCommands.add(stringBuffer.split(","));
-						lines++;
-					} else if (stringBuffer.substring(0, 2).equals("el")) {
-						elevatorCommands.add(stringBuffer.split(","));
-						lines++;
+			if (fileType.equals(Recorder.CSV)) {
+				while (stringBuffer != null) {
+					if (!stringBuffer.isEmpty()
+							&& stringBuffer.charAt(0) != '#'
+							&& !stringBuffer.substring(0, 2).equals("el")) {
+						if (stringBuffer.substring(0, 2).equals("mo")) {
+							motionCommands.add(stringBuffer.split(","));
+							lines++;
+						} else if (stringBuffer.substring(0, 2).equals("el")) {
+							elevatorCommands.add(stringBuffer.split(","));
+							lines++;
+						}
 					}
+					stringBuffer = br.readLine();
 				}
-				stringBuffer = br.readLine();
+			} else {
+				while (stringBuffer != null) {
+					if (!stringBuffer.isEmpty()
+							&& stringBuffer.charAt(0) != '#'
+							&& !stringBuffer.substring(0, 2).equals("el")) {
+						recording += stringBuffer;
+					}
+					stringBuffer = br.readLine();
+				}
 			}
 
 			br.close();
@@ -93,46 +109,53 @@ public class Player {
 		if (restartSearch) {
 			currentIndex = 0;
 		}
-		switch (valueToGet) {
-		case MOTION_X:
-			for (int i = currentIndex; i < motionCommands.size(); i++) {
-				current = motionCommands.get(i); 
-				if (Integer.parseInt(current[current.length - 1]) > time) {
-					currentIndex = i;
-					return Double.parseDouble(current[MOTION_X_INDEX]);
+
+		if (fileType.equals(Recorder.CSV)) {
+			switch (valueToGet) {
+			case MOTION_X:
+				for (int i = currentIndex; i < motionCommands.size(); i++) {
+					current = motionCommands.get(i);
+					if (Integer.parseInt(current[current.length - 1]) > time) {
+						currentIndex = i;
+						return Double.parseDouble(current[MOTION_X_INDEX]);
+					}
 				}
-			}
-			return 0.0;
-		case MOTION_Y:
-			for (int i = currentIndex; i < elevatorCommands.size(); i++) {
-				current = elevatorCommands.get(i);
-				if (Integer.parseInt(current[current.length - 1]) > time) {
-					currentIndex = i;
-					return Double.parseDouble(current[MOTION_Y_INDEX]);
+				return 0.0;
+			case MOTION_Y:
+				for (int i = currentIndex; i < elevatorCommands.size(); i++) {
+					current = elevatorCommands.get(i);
+					if (Integer.parseInt(current[current.length - 1]) > time) {
+						currentIndex = i;
+						return Double.parseDouble(current[MOTION_Y_INDEX]);
+					}
 				}
-			}
-			return 0.0;
-		case MOTION_Z:
-			for (int i = currentIndex; i < elevatorCommands.size(); i++) {
-				current = elevatorCommands.get(i);
-				if (Integer.parseInt(current[current.length - 1]) > time) {
-					currentIndex = i;
-					return Double.parseDouble(current[MOTION_Z_INDEX]);
+				return 0.0;
+			case MOTION_Z:
+				for (int i = currentIndex; i < elevatorCommands.size(); i++) {
+					current = elevatorCommands.get(i);
+					if (Integer.parseInt(current[current.length - 1]) > time) {
+						currentIndex = i;
+						return Double.parseDouble(current[MOTION_Z_INDEX]);
+					}
 				}
-			}
-			return 0.0;
-		case ELEVATOR:
-			for (int i = currentIndex; i < elevatorCommands.size(); i++) {
-				current = elevatorCommands.get(i);
-				if (Integer.parseInt(current[current.length - 1]) > time) {
-					currentIndex = i;
-					return Double.parseDouble(current[ELEVATOR_INDEX]);
+				return 0.0;
+			case ELEVATOR:
+				for (int i = currentIndex; i < elevatorCommands.size(); i++) {
+					current = elevatorCommands.get(i);
+					if (Integer.parseInt(current[current.length - 1]) > time) {
+						currentIndex = i;
+						return Double.parseDouble(current[ELEVATOR_INDEX]);
+					}
 				}
+				return 0.0;
+			default:
+				return 0.0;
 			}
-			return 0.0;
-		default:
-			return 0.0;
+		} else {
+			// See 
 		}
+
+		return 0;
 	}
 
 	public int getLines() {

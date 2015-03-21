@@ -72,7 +72,7 @@ public class Writer {
 		if (initialized) {
 			try {
 				if (fileType.equals(JSON)) {
-					printWriter.println("\t\t{\"null\","
+					printWriter.println("\t\t\t{\"null\":[],\"time\" : "
 							+ (System.currentTimeMillis() - firstTime) + "}");
 					printWriter.println("\t\t]\n\t}\n}");
 				} else {

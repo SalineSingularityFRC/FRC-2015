@@ -9,10 +9,6 @@ import java.util.ArrayList;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 public class Recorder {
-	private FileWriter fileWriter;
-	private PrintWriter printWriter;
-	private String outputURL;
-
 	private long firstTime;
 	private String previous = "";
 
@@ -22,10 +18,9 @@ public class Recorder {
 	public static final String CSV = "csv", JSON = "json";
 	private String fileType;
 
-	public Recorder(String fileName, String fileType) {
-		this.outputURL = fileName;
+	public Recorder(String fileType) {
 		this.fileType = fileType;
-		
+
 		queue = new ArrayList<String>();
 		initialized = false;
 	}
@@ -34,6 +29,10 @@ public class Recorder {
 		return queue;
 	}
 	
+	public void clearQueue() {
+		queue = new ArrayList<String>();
+	}
+
 	public void initializeRecorder(long firstTime) {
 		if (!initialized) {
 			initialized = true;
@@ -41,37 +40,11 @@ public class Recorder {
 		}
 	}
 
-	public void addJSONHead() {
-		queue.add("{\"recordings\" :");
-		queue.add("\t{\"starttime\" : " + System.currentTimeMillis() + ",");
-		queue.add("\t \"actions\" : [");
-	}
-
 	public void addTimestamp() {
 		queue.add("#" + System.currentTimeMillis());
 	}
 
 	// TODO add counter again.
-
-	// public void appendOutput(String[] data) {
-	// String toAdd = "";
-	// for (int i = 0; i < data.length; i++) {
-	// toAdd += data[i] + ",";
-	// }
-	//
-	// if (!previous.equals(toAdd) && !previous.isEmpty()) {
-	// printWriter.println(toAdd
-	// + (System.currentTimeMillis() > firstTime ? System
-	// .currentTimeMillis() - firstTime
-	// : "Time Unavailable"));
-	// previous = toAdd;
-	// }
-	//
-	// if (previous.isEmpty()) {
-	// previous = toAdd;
-	// }
-	// }
-
 	public void appendOutput(String key, String[] data) {
 		String entry = "";
 		if (fileType.equals(CSV)) {
@@ -89,69 +62,19 @@ public class Recorder {
 				previous = entry;
 			}
 		} else if (fileType.equals(JSON)) {
-			//This block is for json
+			// This block is for json
 			for (int i = 0; i < data.length; i++) {
 				entry += data[i] + ",";
 			}
 
 			if (!previous.equals(entry) && !previous.isEmpty()) {
-				queue.add("\t\t{\"" + key + "\" : [" + entry
-						+ (System.currentTimeMillis() - firstTime) + "]},");
-				SmartDashboard.putNumber("TEST" + key, firstTime);
+				queue.add("\t\t\t{\"" + key + "\" : ["
+						+ entry.substring(0, entry.length() - 1)
+						+ "],\"time\" : "
+						+ (System.currentTimeMillis() - firstTime) + "},");
 				previous = entry;
 			} else if (previous.isEmpty()) {
 				previous = entry;
-			}
-		} else {
-
-		}
-	}
-
-	/*
-	 * public void appendOutput(String key, String[] data) { String entry = "",
-	 * previous = getValue(store, key); for (int i = 0; i < data.length; i++) {
-	 * entry += data[i] + ","; }
-	 * 
-	 * if (!previous.equals(entry) && !previous.isEmpty()) {
-	 * printWriter.println(key + "," + entry + (System.currentTimeMillis() -
-	 * firstTime)); store = putValue(store, key, entry); }
-	 * 
-	 * if (previous.isEmpty()) { store = putValue(store, key, entry); } }
-	 * 
-	 * private String getValue(ArrayList<String[]> pairs, String key) { for
-	 * (String[] current : pairs) { if (current[0].equals(key)) return
-	 * current[1]; } return ""; }
-	 * 
-	 * private ArrayList<String[]> putValue(ArrayList<String[]> pairs, String
-	 * key, String entry) { for (int i = 0; i < pairs.size(); i++) { if
-	 * (pairs.get(i)[0].equals(key)) { pairs.get(i)[1] = entry; return pairs; }
-	 * } pairs.add(new String[] { key, entry }); return pairs; }
-	 */
-	public void finalizeOutput(boolean end) {
-		if (initialized) {
-			try {
-				fileWriter = new FileWriter(outputURL, true);
-				printWriter = new PrintWriter(fileWriter);
-
-				for (String str : queue) {
-					printWriter.println(str);
-				}
-				if (end) {
-					if (fileType.equals(JSON)) {
-						printWriter.println("\t\t{\"null\"," + previous
-								+ (System.currentTimeMillis() - firstTime)
-								+ "}");
-						printWriter.println("\t\t]\n\t}\n}");
-					} else {
-						printWriter.println("null," + previous
-								+ (System.currentTimeMillis() - firstTime));
-					}
-				}
-
-				printWriter.close();
-				fileWriter.close();
-			} catch (IOException e) {
-				e.printStackTrace();
 			}
 		}
 	}
