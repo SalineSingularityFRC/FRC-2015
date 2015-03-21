@@ -63,7 +63,8 @@ public class Robot extends IterativeRobot {
 	// final String[] MODES = { "Mecanum", "Arcade", "Tank" };
 
 	// Create movement constants. These edit the max speeds.
-	final double TRANSLATION_CONSTANT = .7, ROTATION_CONSTANT = .7, ELEVATOR_CONSTANT = 0.6;
+	final double TRANSLATION_CONSTANT = .9, ROTATION_CONSTANT = .9,
+			ELEVATOR_CONSTANT = 0.7;
 
 	// Create intake speed constant. This edits the max speed, and is editable
 	// in the SmartDashboard
@@ -148,10 +149,10 @@ public class Robot extends IterativeRobot {
 
 		// TODO FiX tHiS fROm CrASHING WiTh NiViSiON ExCEPtIOn
 		// Initialize the camera, and start taking video
-		/*
-		 * cs = CameraServer.getInstance(); cs.setQuality(cameraQuality);
-		 * cs.startAutomaticCapture(cameraPort);
-		 */
+
+		cs = CameraServer.getInstance();
+		cs.setQuality(cameraQuality);
+		cs.startAutomaticCapture(cameraPort);
 
 		// TODO Add functionality for switching joysticks without rebooring
 		// robot
@@ -199,16 +200,17 @@ public class Robot extends IterativeRobot {
 		 */
 		if (recording) {
 			myWriter = new Writer(recordingsURL, fileType);
-			movementRecorder = new Recorder(recordingsURL, fileType);
-			elevatorRecorder = new Recorder(recordingsURL, fileType);
+			movementRecorder = new Recorder(fileType);
+			elevatorRecorder = new Recorder(fileType);
 		}
 		SmartDashboard.putString("Line Number", "0");
 
+		SmartDashboard.putString("Drive Type", "Mecanum");
 	}
 
 	public void autonomousInit() {
 		if (play) {
-			movementPlayer = new Player(recordingsURL);
+			movementPlayer = new Player(recordingsURL, fileType);
 			movementPlayer.dumpRecording();
 			initialTime = System.currentTimeMillis();
 			runCommands(movementPlayer);
@@ -253,7 +255,7 @@ public class Robot extends IterativeRobot {
 	public void runCommands(Player player) {
 		final int movX = 1, movY = 2, movZ = 3, movTime = 4;
 
-		//SmartDashboard.putNumber("Commands Test", player.get(0).length);
+		// SmartDashboard.putNumber("Commands Test", player.get(0).length);
 		long firstTime = Long.parseLong(player.get(0)[movTime]), nextTime;
 		String motion[];
 
@@ -295,13 +297,20 @@ public class Robot extends IterativeRobot {
 		 */
 
 		if (robotMotion) {
-			sd.driveMecanum(movementController.getX(),
-					movementController.getY(), movementController.getZ(),
-					TRANSLATION_CONSTANT, ROTATION_CONSTANT, true);
-			elevator.set(intakeController.getElevator() * Math.abs(intakeController.getElevator()) * ELEVATOR_CONSTANT);
+			if (SmartDashboard.getString("Drive Type").equals("Tank")) {
+				sd.metankum(movementController.getLeftY(),
+						movementController.getRightY(),
+						movementController.getRightX(), TRANSLATION_CONSTANT,
+						true);
+			} else {
+				sd.driveMecanum(movementController.getX(),
+						movementController.getY(), movementController.getZ(),
+						TRANSLATION_CONSTANT, ROTATION_CONSTANT, true);
+			}
+			elevator.set(intakeController.getElevator()
+					* Math.abs(intakeController.getElevator())
+					* ELEVATOR_CONSTANT);
 		}
-
-		elevator.getRangeInches();
 
 		SmartDashboard.putNumber("X Axis", movementController.getX());
 		SmartDashboard.putNumber("Y Axis", movementController.getY());
@@ -327,12 +336,15 @@ public class Robot extends IterativeRobot {
 			myWriter.writeQueue(movementRecorder.getQueue());
 			myWriter.writeQueue(elevatorRecorder.getQueue());
 			myWriter.finalizeOutput();
+
+			movementRecorder.clearQueue();
+			elevatorRecorder.clearQueue();
 		}
 	}
 
 	public void testInit() {
 		if (play) {
-			movementPlayer = new Player(recordingsURL);
+			movementPlayer = new Player(recordingsURL, fileType);
 			movementPlayer.dumpRecording();
 			initialTime = System.currentTimeMillis();
 			runCommands(movementPlayer);
@@ -408,7 +420,7 @@ public class Robot extends IterativeRobot {
 		fileType = prop.getProperty("fileType");
 		recordingsURL = prop.getProperty("recordingsURL") + "." + fileType;
 		SmartDashboard.putString("URL", recordingsURL);
-		
+
 		robotMotion = Boolean.parseBoolean(prop.getProperty("move"));
 
 		play = Boolean.parseBoolean(prop.getProperty("play"));

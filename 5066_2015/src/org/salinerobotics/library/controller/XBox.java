@@ -40,16 +40,16 @@ public class XBox implements SingularityController {
 	public double getLeftX() {
 		return eliminateSmall(joystick.getRawAxis(0));
 	}
-
-	public double getOuterIntake() {
+	
+	public double getLeftY() {
 		return eliminateSmall(-joystick.getRawAxis(1));
 	}
 
 	public double getRightX() {
 		return eliminateSmall(joystick.getRawAxis(4));
 	}
-
-	public double getInnerIntake() {
+	
+	public double getRightY() {
 		return eliminateSmall(-joystick.getRawAxis(5));
 	}
 

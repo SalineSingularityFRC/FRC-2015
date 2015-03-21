@@ -41,7 +41,7 @@ public class Logitech implements SingularityController{
 		return eliminateSmall(joystick.getX());
 	}
 
-	public double getOuterIntake() {
+	public double getLeftY() {
 		return eliminateSmall(-joystick.getY());
 	}
 
@@ -49,7 +49,7 @@ public class Logitech implements SingularityController{
 		return eliminateSmall(joystick.getX());
 	}
 
-	public double getInnerIntake() {
+	public double getRightY() {
 		return eliminateSmall(-joystick.getY());
 	}
 

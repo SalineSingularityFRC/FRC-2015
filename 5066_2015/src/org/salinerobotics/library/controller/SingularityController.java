@@ -14,9 +14,9 @@ public interface SingularityController {
 	public double getElevator();
 	
 	public double getLeftX();
+	public double getLeftY();
 	public double getRightX();
-	public double getOuterIntake();
-	public double getInnerIntake();
+	public double getRightY();
 	
 	public boolean getStart();
 	

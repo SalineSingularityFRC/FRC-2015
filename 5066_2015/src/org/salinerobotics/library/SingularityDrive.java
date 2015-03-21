@@ -5,6 +5,8 @@ import org.salinerobotics.library.controller.SingularityController;
 
 import edu.wpi.first.wpilibj.GenericHID;
 import edu.wpi.first.wpilibj.RobotDrive;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+
 import java.text.SimpleDateFormat;
 import java.util.Calendar; //For timing while loops
 
@@ -136,8 +138,7 @@ public class SingularityDrive extends RobotDrive {
 	 */
 	public void tankDrive(SingularityController controller,
 			double translationMultiplier, boolean squaredInputs) {
-		double left = -controller.getOuterIntake(), right = controller
-				.getInnerIntake();
+		double left = -controller.getLeftY(), right = controller.getRightY();
 
 		if (squaredInputs) {
 			left *= Math.abs(left);
@@ -213,9 +214,19 @@ public class SingularityDrive extends RobotDrive {
 	}
 
 	public void metankum(double left, double right, double strafe,
-			double translationMultiplier, double rotationMultiplier,
-			boolean squaredInputs) {
+			double inputMultiplier, boolean squaredInputs) {
+		if (squaredInputs) {
+			left *= Math.abs(left);
+			right *= Math.abs(right);
+		}
 		
+		double max = Math.max(Math.max(Math.abs(left), Math.abs(right))
+				* inputMultiplier + Math.abs(strafe), 1);
+		
+		m_frontLeftMotor.set((left + strafe) / max);
+		m_rearLeftMotor.set((left - strafe) / max);
+		m_frontRightMotor.set((-right + strafe) / max);
+		m_rearRightMotor.set((-right - strafe) / max);
 	}
 
 	public void forward() {
