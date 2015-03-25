@@ -6,10 +6,13 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
 
+import org.salinerobotics.library.SingularityDrive;
+
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 public class Player {
 	private ArrayList<String[]> motionCommands, elevatorCommands;
+	public ArrayList<Long> motionTimes, elevatorTimes;
 	private int lines, currentIndex;
 	private boolean dumpRecording;
 	private String fileType, recording;
@@ -17,6 +20,57 @@ public class Player {
 			ELEVATOR = 4;
 	private static final int MOTION_X_INDEX = 1, MOTION_Y_INDEX = 2,
 			MOTION_Z_INDEX = 3, ELEVATOR_INDEX = 1;
+	private SingularityDrive drive;
+	private Elevator elevator;
+
+	public Player(ArrayList<String[]> motionCommands,
+			ArrayList<Long> motionTimes,
+			ArrayList<String[]> elevatorCommands,
+			ArrayList<Long> elevatorTimes, SingularityDrive drive,
+			Elevator elevator) {
+		this.motionCommands = motionCommands;
+		this.motionTimes = motionTimes;
+		this.elevatorCommands = elevatorCommands;
+		this.elevatorTimes = elevatorTimes;
+		this.drive = drive;
+		this.elevator = elevator;
+		currentIndex = 0;
+	}
+
+	public String[] getCommandAtTime(ArrayList<String[]> commands,
+			ArrayList<Long> times, long time) {
+		for (int i = (int) time; i < times.size(); i++) {
+			if (times.get(i) > time) {
+				return commands.get(i);
+			}
+		}
+
+		String[] toReturn = new String[commands.get(0).length];
+		for (int i = 0; i < toReturn.length; i++) {
+			toReturn[i] = "0.0";
+		}
+
+		return toReturn;
+	}
+
+	public void play() {
+		String[] currentMotionCommands, currentElevatorCommands;
+		long startTime = System.currentTimeMillis(), finalTime = motionTimes.get(motionTimes.size() - 1) + startTime;
+
+		while (System.currentTimeMillis() < finalTime) {
+			currentMotionCommands = getCommandAtTime(motionCommands,
+					motionTimes, System.currentTimeMillis() - startTime);
+			currentElevatorCommands = getCommandAtTime(elevatorCommands,
+					elevatorTimes, System.currentTimeMillis() - startTime);
+
+			drive.driveMecanum(Double.parseDouble(currentMotionCommands[0]),
+					Double.parseDouble(currentMotionCommands[1]),
+					Double.parseDouble(currentMotionCommands[2]),
+					Robot.horizontalConstant, Robot.verticalConstant,
+					Robot.rotationConstant, true);
+			elevator.set(Double.parseDouble(currentElevatorCommands[0]));
+		}
+	}
 
 	public Player(String fileURL, String fileType) {
 		BufferedReader br;
@@ -152,7 +206,7 @@ public class Player {
 				return 0.0;
 			}
 		} else {
-			// See 
+			// See
 		}
 
 		return 0;

@@ -8,6 +8,13 @@ import java.util.ArrayList;
 
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
+/**
+ * Class for recording input to a queue. This does not write to a file, merely
+ * sets up an array
+ * 
+ * @author frc5066
+ *
+ */
 public class Recorder {
 	private long firstTime;
 	private String previous = "";
@@ -16,23 +23,47 @@ public class Recorder {
 	private boolean initialized;
 
 	public static final String CSV = "csv", JSON = "json";
-	private String fileType;
+	private String fileType, key;
 
-	public Recorder(String fileType) {
+	/**
+	 * Create a recorder object
+	 * 
+	 * @param fileType
+	 *            Use "csv" or "json"
+	 * @param key
+	 *            String to name the object array or the csv line
+	 */
+	public Recorder(String fileType, String key) {
 		this.fileType = fileType;
+		this.key = key;
 
 		queue = new ArrayList<String>();
 		initialized = false;
 	}
 
+	/**
+	 * returns the recorded queue
+	 * 
+	 * @return The queue
+	 */
 	public ArrayList<String> getQueue() {
 		return queue;
 	}
-	
+
+	/**
+	 * Empties out the queue
+	 */
 	public void clearQueue() {
 		queue = new ArrayList<String>();
 	}
 
+	/**
+	 * Sets up the recorder for use
+	 * 
+	 * @param firstTime
+	 *            What time to offset the recorder to. Use
+	 *            System.currentTimeMillis() for a normal offset
+	 */
 	public void initializeRecorder(long firstTime) {
 		if (!initialized) {
 			initialized = true;
@@ -40,12 +71,21 @@ public class Recorder {
 		}
 	}
 
+	/**
+	 * Add a timestamp comment. For csv use only.
+	 */
 	public void addTimestamp() {
 		queue.add("#" + System.currentTimeMillis());
 	}
 
 	// TODO add counter again.
-	public void appendOutput(String key, String[] data) {
+	/**
+	 * Add data to the queue
+	 * 
+	 * @param data
+	 *            Array of data to add
+	 */
+	public void appendOutput(String[] data) {
 		String entry = "";
 		if (fileType.equals(CSV)) {
 			// This block is for CSV
@@ -63,18 +103,38 @@ public class Recorder {
 			}
 		} else if (fileType.equals(JSON)) {
 			// This block is for json
+
+			// TODO make format like exmaple format in notepad++
 			for (int i = 0; i < data.length; i++) {
 				entry += data[i] + ",";
 			}
 
 			if (!previous.equals(entry) && !previous.isEmpty()) {
-				queue.add("\t\t\t{\"" + key + "\" : ["
+				queue.add("\t\t{\"values\" : ["
 						+ entry.substring(0, entry.length() - 1)
-						+ "],\"time\" : "
+						+ "], \"time\" : "
 						+ (System.currentTimeMillis() - firstTime) + "},");
 				previous = entry;
 			} else if (previous.isEmpty()) {
 				previous = entry;
+			}
+		}
+	}
+
+	/**
+	 * Finish off the data adding. Will add the very last element
+	 */
+	public void finalize() {
+		if (initialized) {
+			if (fileType.equals(CSV)) {
+				queue.add(key + "," + previous
+						+ (System.currentTimeMillis() - firstTime));
+			} else if (fileType.equals(JSON)) {
+				SmartDashboard.putString("Test", previous);
+				queue.add("\t\t{\"values\" : ["
+						+ previous.substring(0, previous.length() - 1)
+						+ "], \"time\" : "
+						+ (System.currentTimeMillis() - firstTime) + "}");
 			}
 		}
 	}

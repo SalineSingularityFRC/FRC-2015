@@ -39,14 +39,15 @@ public class Robot extends IterativeRobot {
 	private int rfPort;
 
 	// Create integers for input controllers and settings
-	Joystick movementJoystick, intakeJoystick;
+	Joystick joystick0, joystick1;
 	SingularityController intakeController, movementController;
 	/*
 	 * What is this even used for???? XBox xbox; Logitech logitech;
 	 */
 
 	int controlMode, driveMode;
-	int LOGITECH_DRIVE = 0, XBOX_DRIVE = 1, DUAL_LOGITECH_DRIVE = 2;
+	int LOGITECH_DRIVE = 0, XBOX_DRIVE = 1, DUAL_LOGITECH_DRIVE = 2,
+			XBOX_ONE_PERSON_DRIVE = 3;
 
 	// Create integers for TalonSR and TalonSRX ports
 	private int backLeft, backRight, frontLeft, frontRight, intakeInnerLeft,
@@ -63,8 +64,8 @@ public class Robot extends IterativeRobot {
 	// final String[] MODES = { "Mecanum", "Arcade", "Tank" };
 
 	// Create movement constants. These edit the max speeds.
-	final double TRANSLATION_CONSTANT = .9, ROTATION_CONSTANT = .9,
-			ELEVATOR_CONSTANT = 0.7;
+	static double horizontalConstant, verticalConstant, rotationConstant,
+			elevatorConstant;
 
 	// Create intake speed constant. This edits the max speed, and is editable
 	// in the SmartDashboard
@@ -78,10 +79,11 @@ public class Robot extends IterativeRobot {
 
 	// Recording Stuff
 	Recorder movementRecorder, elevatorRecorder;
+	Reader reader;
 	Player movementPlayer, elevatorPlayer;
 	Writer myWriter;
 
-	boolean recording, robotMotion, play;
+	boolean recordingEnabled, robotMotion, play, recordingNow;
 	String recordingsURL, fileType;
 
 	// Used to store initial time from enable for playback of motion
@@ -134,8 +136,14 @@ public class Robot extends IterativeRobot {
 
 			timerDelay = 0.005;
 
-			recording = false;
+			recordingEnabled = false;
+			recordingNow = false;
 			play = false;
+
+			horizontalConstant = 1;
+			verticalConstant = 1;
+			rotationConstant = 1;
+			elevatorConstant = 1;
 		} finally {
 			SmartDashboard.putString("Properties Loaded", "successfully");
 			SmartDashboard.putNumber("Timer Delay", timerDelay);
@@ -158,25 +166,30 @@ public class Robot extends IterativeRobot {
 		// robot
 		// Initialize the user inputs.
 		cameraQuality = 50;
-		movementJoystick = new Joystick(0);
-		intakeJoystick = new Joystick(1);
+		joystick0 = new Joystick(0);
+		joystick1 = new Joystick(1);
 
 		if (driveMode == LOGITECH_DRIVE) {
 			SmartDashboard.putString("Initializing Controllers",
 					"Movement: Logitech Joystick; Intake: Xbox");
-			movementController = new Logitech(movementJoystick, 0.04);
-			intakeController = new XBox(intakeJoystick, 0.15);
+			movementController = new Logitech(joystick0, 0.04);
+			intakeController = new XBox(joystick1, 0.15);
 		} else if (driveMode == DUAL_LOGITECH_DRIVE) {
 			SmartDashboard.putString("Initializing Controllers",
 					"Dual Logitech Joysticks");
-			intakeController = new Logitech(intakeJoystick, 0.04);
-			movementController = new Logitech(movementJoystick, 0.04);
-		} else {
+			intakeController = new Logitech(joystick1, 0.04);
+			movementController = new Logitech(joystick0, 0.04);
+		} else if (driveMode == XBOX_DRIVE) {
 			SmartDashboard.putString("Test", "XBox Time");
 			SmartDashboard.putString("Initializing Controllers",
 					"Movement: Xbox; Intake: Logitech Joystick");
-			intakeController = new Logitech(movementJoystick, 0.04);
-			movementController = new XBox(intakeJoystick, 0.15);
+			intakeController = new Logitech(joystick0, 0.04);
+			movementController = new XBox(joystick1, 0.15);
+		} else {
+			SmartDashboard.putString("Initializing Controllers",
+					"Only XBOX drive");
+			intakeController = new XBox(joystick1, 0.04);
+			movementController = intakeController;
 		}
 
 		// Initialize the robot movements.
@@ -198,10 +211,10 @@ public class Robot extends IterativeRobot {
 		 * try { reader = new Reader("/test"); } catch (IOException e) { // TODO
 		 * Auto-generated catch block e.printStackTrace(); }
 		 */
-		if (recording) {
+		if (recordingEnabled) {
 			myWriter = new Writer(recordingsURL, fileType);
-			movementRecorder = new Recorder(fileType);
-			elevatorRecorder = new Recorder(fileType);
+			movementRecorder = new Recorder(fileType, "mo");
+			elevatorRecorder = new Recorder(fileType, "el");
 		}
 		SmartDashboard.putString("Line Number", "0");
 
@@ -210,8 +223,15 @@ public class Robot extends IterativeRobot {
 
 	public void autonomousInit() {
 		if (play) {
-			movementPlayer = new Player(recordingsURL, fileType);
-			movementPlayer.dumpRecording();
+			// movementPlayer = new Player(recordingsURL, fileType);
+			reader = new Reader(recordingsURL);
+			reader.readJSON("recording");
+
+			movementPlayer = new Player(reader.getMotionCommands(),
+					reader.getMotionTimes(), reader.getElevatorCommands(),
+					reader.getElevatorTimes(), sd, elevator);
+			movementPlayer.play();
+
 			initialTime = System.currentTimeMillis();
 			runCommands(movementPlayer);
 		}
@@ -245,10 +265,11 @@ public class Robot extends IterativeRobot {
 	 */
 
 	public void teleopInit() {
-		if (recording) {
+		if (recordingEnabled) {
 			myWriter.initializeOutput();
 			movementRecorder.initializeRecorder(myWriter.getFirstTime());
 			elevatorRecorder.initializeRecorder(myWriter.getFirstTime());
+			recordingNow = true;
 		}
 	}
 
@@ -270,8 +291,8 @@ public class Robot extends IterativeRobot {
 				// motion[1]; z = motion[2]
 				sd.driveMecanum(Double.parseDouble(motion[movX]),
 						Double.parseDouble(motion[movY]),
-						Double.parseDouble(motion[movZ]), TRANSLATION_CONSTANT,
-						ROTATION_CONSTANT, true);
+						Double.parseDouble(motion[movZ]), horizontalConstant,
+						verticalConstant, rotationConstant, true);
 			}
 		}
 	}
@@ -295,34 +316,37 @@ public class Robot extends IterativeRobot {
 		 * sd.tankDrive(intakeController, TRANSLATION_CONSTANT, false); break;
 		 * default: break; }
 		 */
+		// if(movementController.getStart()) {
+		// sd.driveMecanum(0.5, 0, 0, 1, 1, false);
+		// }
 
 		if (robotMotion) {
 			if (SmartDashboard.getString("Drive Type").equals("Tank")) {
 				sd.metankum(movementController.getLeftY(),
 						movementController.getRightY(),
-						movementController.getRightX(), TRANSLATION_CONSTANT,
-						true);
+						movementController.getRightX(), verticalConstant, true);
 			} else {
 				sd.driveMecanum(movementController.getX(),
 						movementController.getY(), movementController.getZ(),
-						TRANSLATION_CONSTANT, ROTATION_CONSTANT, true);
+						horizontalConstant, verticalConstant, rotationConstant,
+						true);
 			}
+			// TODO make a squareInput method to avoid problems
 			elevator.set(intakeController.getElevator()
 					* Math.abs(intakeController.getElevator())
-					* ELEVATOR_CONSTANT);
+					* elevatorConstant);
 		}
 
 		SmartDashboard.putNumber("X Axis", movementController.getX());
 		SmartDashboard.putNumber("Y Axis", movementController.getY());
 		SmartDashboard.putNumber("Z Axis", movementController.getZ());
 
-		if (recording) {
-			movementRecorder.appendOutput(
-					"mo",
-					new String[] { Double.toString(movementController.getX()),
-							Double.toString(movementController.getY()),
-							Double.toString(movementController.getZ()) });
-			elevatorRecorder.appendOutput("el", new String[] { Double
+		if (recordingEnabled) {
+			movementRecorder.appendOutput(new String[] {
+					Double.toString(movementController.getX()),
+					Double.toString(movementController.getY()),
+					Double.toString(movementController.getZ()) });
+			elevatorRecorder.appendOutput(new String[] { Double
 					.toString(intakeController.getElevator()) });
 		}
 
@@ -332,13 +356,17 @@ public class Robot extends IterativeRobot {
 	}
 
 	public void disabledInit() {
-		if (recording) {
-			myWriter.writeQueue(movementRecorder.getQueue());
-			myWriter.writeQueue(elevatorRecorder.getQueue());
+		if (recordingEnabled && recordingNow) {
+			movementRecorder.finalize();
+			elevatorRecorder.finalize();
+
+			myWriter.writeQueue("mo", movementRecorder.getQueue());
+			myWriter.writeQueue("el", elevatorRecorder.getQueue());
 			myWriter.finalizeOutput();
 
 			movementRecorder.clearQueue();
 			elevatorRecorder.clearQueue();
+			recordingNow = false;
 		}
 	}
 
@@ -415,7 +443,7 @@ public class Robot extends IterativeRobot {
 		driveMode = Integer.parseInt(prop.getProperty("driveMode"));
 
 		// Recordings
-		recording = Boolean.parseBoolean(prop.getProperty("record"));
+		recordingEnabled = Boolean.parseBoolean(prop.getProperty("record"));
 
 		fileType = prop.getProperty("fileType");
 		recordingsURL = prop.getProperty("recordingsURL") + "." + fileType;
@@ -426,6 +454,16 @@ public class Robot extends IterativeRobot {
 		play = Boolean.parseBoolean(prop.getProperty("play"));
 		SmartDashboard.putBoolean("Step 1",
 				Boolean.parseBoolean(prop.getProperty("dumpRecording")));
+
+		horizontalConstant = Double.parseDouble(prop
+				.getProperty("horizontalConstant"));
+		verticalConstant = Double.parseDouble(prop
+				.getProperty("verticalConstant"));
+		rotationConstant = Double.parseDouble(prop
+				.getProperty("rotationConstant"));
+		elevatorConstant = Double.parseDouble(prop
+				.getProperty("elevatorConstant"));
+
 		// movementPlayer.setDumpRecording(Boolean.parseBoolean(prop
 		// .getProperty("dumpRecording")));
 
