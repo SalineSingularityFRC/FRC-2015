@@ -36,8 +36,11 @@ public class Reader {
 	 * @param fileURL
 	 *            Which file to read
 	 */
-	public Reader(String fileURL) {
-		this.fileURL = fileURL;
+	public Reader() {
+		this.motionCommands = new ArrayList<String[]>();
+		this.motionTimes = new ArrayList<Long>();
+		this.elevatorCommands = new ArrayList<String[]>();
+		this.elevatorTimes = new ArrayList<Long>();
 	}
 
 	// TODO Finish documenting everything in this and Player
@@ -95,12 +98,11 @@ public class Reader {
 	 * }
 	 */
 
-	public void readJSON(String recordingName) {
-		// TODO IMPORTANT: this assumes that the json file is contained in a set
-		// of brackets
-
+	public void readJSON(String fileName) {
+		this.fileURL = "/recordings/" + fileName + ".json";
+		SmartDashboard.putString("Recording File Name - UPTODATE", this.fileURL);
 		JSONArray motionJSONArray, elevatorJSONArray;
-		JSONObject fullFile, recording, tempObject;
+		JSONObject recording, tempObject;
 		JSONParser parser = new JSONParser();
 
 		Object[] tempObjectArray;
@@ -109,10 +111,9 @@ public class Reader {
 
 		try {
 			fr = new FileReader(fileURL);
-			SmartDashboard.putString("File reader", "Reading from: " + fileURL);
-			fullFile = (JSONObject) parser.parse(fr);
-			recording = (JSONObject) fullFile.get(recordingName);
-
+			SmartDashboard.putString("Reading from:", fileURL);
+			
+			recording = (JSONObject) parser.parse(fr);
 			motionJSONArray = (JSONArray) recording.get("mo");
 			elevatorJSONArray = (JSONArray) recording.get("el");
 
@@ -155,12 +156,13 @@ public class Reader {
 			SmartDashboard.putString("File reader", "File unparseable");
 			return;
 		}
+		SmartDashboard.putString("File reader", "File read properly");
 		/*
 		 * endReached = false; while (!endReached) { try { line = br.readLine();
 		 * 
-		 * } catch (IOException e) { // TODO Auto-generated catch block
-		 * e.printStackTrace(); } if (line != null) { jsonText = jsonText +
-		 * line; } else endReached = true; }
+		 * } catch (IOException e) { e.printStackTrace(); } if (line != null) {
+		 * 00000000000000000000000000000000000000000000000 * jsonText = jsonText
+		 * + line; } else endReached = true; }
 		 */
 
 	}
@@ -168,6 +170,28 @@ public class Reader {
 	public ArrayList<String[]> getMotionCommands() {
 		return motionCommands;
 	}
+
+	// private String cat(ArrayList<String[]> arr) {
+	// String toReturn = "";
+	// for (int i = 0; i < arr.size(); i++) {
+	// toReturn += "[";
+	// for (int j = 0; j < arr.get(i).length; j++) {
+	// toReturn += arr.get(i)[j] + ", ";
+	// }
+	// toReturn = toReturn.substring(0, toReturn.length() - 2);
+	// toReturn += "], ";
+	// }
+	//
+	// return toReturn.substring(0, toReturn.length() - 2);
+	// }
+	//
+	// private String cat2(ArrayList<Long> arr) {
+	// String toReturn = "";
+	// for(int i = 0; i<arr.size();i++){
+	// toReturn += arr.get(i) + ", ";
+	// }
+	// return toReturn.substring(0, toReturn.length() - 2);
+	// }
 
 	public ArrayList<Long> getMotionTimes() {
 		return motionTimes;

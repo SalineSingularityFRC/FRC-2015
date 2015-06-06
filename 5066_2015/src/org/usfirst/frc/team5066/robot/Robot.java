@@ -12,6 +12,7 @@ import org.salinerobotics.library.controller.XBox;
 import com.ni.vision.VisionException;
 
 import edu.wpi.first.wpilibj.CameraServer;
+import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.IterativeRobot;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.Timer;
@@ -80,14 +81,22 @@ public class Robot extends IterativeRobot {
 	// Recording Stuff
 	Recorder movementRecorder, elevatorRecorder;
 	Reader reader;
-	Player movementPlayer, elevatorPlayer;
+	Player player, elevatorPlayer;
 	Writer myWriter;
 
 	boolean recordingEnabled, robotMotion, play, recordingNow;
-	String recordingsURL, fileType;
+	String recordingsURL, fileType, recordingName;
 
 	// Used to store initial time from enable for playback of motion
 	long initialTime;
+	DigitalInput topLimitSwitch;
+	DigitalInput bottomLimitSwitch;
+	int mode;
+
+	long autonStartTime;
+	String[] autonModes;
+	boolean useBackupAuton;
+	double brakeConstant;
 
 	/**
 	 * This function is run when the robot is first started up and should be
@@ -102,6 +111,7 @@ public class Robot extends IterativeRobot {
 	// ROBOT INIT
 	public void robotInit() {
 		sr = new SingularityReader();
+		autonModes = new String[6];
 
 		try {
 			applyProperties(sr.readProperties(PROP_FILE_URL));
@@ -130,7 +140,7 @@ public class Robot extends IterativeRobot {
 			 * intakeController = xbox; movementController = logitech;
 			 */
 
-			autonMode = 0;
+			autonMode = 1;
 
 			robotMotion = true;
 
@@ -139,6 +149,7 @@ public class Robot extends IterativeRobot {
 			recordingEnabled = false;
 			recordingNow = false;
 			play = false;
+			recordingName = "Default";
 
 			horizontalConstant = 1;
 			verticalConstant = 1;
@@ -157,12 +168,16 @@ public class Robot extends IterativeRobot {
 
 		// TODO FiX tHiS fROm CrASHING WiTh NiViSiON ExCEPtIOn
 		// Initialize the camera, and start taking video
+		SmartDashboard.putString("Vision Excpetion?", "not yet");
+		try {
+			cs = CameraServer.getInstance();
+			cs.setQuality(cameraQuality);
+			cs.startAutomaticCapture(cameraPort);
+		} catch (VisionException ve) {
+			SmartDashboard.putString("Vision Exception?", "pretty much");
+		}
 
-		cs = CameraServer.getInstance();
-		cs.setQuality(cameraQuality);
-		cs.startAutomaticCapture(cameraPort);
-
-		// TODO Add functionality for switching joysticks without rebooring
+		// TODO Add functionality for switching joysticks without rebooting
 		// robot
 		// Initialize the user inputs.
 		cameraQuality = 50;
@@ -192,8 +207,11 @@ public class Robot extends IterativeRobot {
 			movementController = intakeController;
 		}
 
+		topLimitSwitch = new DigitalInput(0);
+		bottomLimitSwitch = new DigitalInput(1);
 		// Initialize the robot movements.
-		elevator = new Elevator(elevatorPort, rfPort);
+		elevator = new Elevator(elevatorPort, rfPort, brakeConstant,
+				topLimitSwitch, bottomLimitSwitch);
 		intake = new Intake(intakeOuterLeft, intakeOuterRight, intakeInnerLeft,
 				intakeInnerRight);
 		sd = new SingularityDrive(frontLeft, backLeft, frontRight, backRight);
@@ -212,28 +230,38 @@ public class Robot extends IterativeRobot {
 		 * Auto-generated catch block e.printStackTrace(); }
 		 */
 		if (recordingEnabled) {
-			myWriter = new Writer(recordingsURL, fileType);
+			myWriter = new Writer(fileType);
 			movementRecorder = new Recorder(fileType, "mo");
 			elevatorRecorder = new Recorder(fileType, "el");
 		}
-		SmartDashboard.putString("Line Number", "0");
 
 		SmartDashboard.putString("Drive Type", "Mecanum");
 	}
 
 	public void autonomousInit() {
-		if (play) {
-			// movementPlayer = new Player(recordingsURL, fileType);
-			reader = new Reader(recordingsURL);
-			reader.readJSON("recording");
+		// if (!play) {
+		// mode = 1;
+		// } else {
+		// mode = 0;
+		// }
+		// //TODO delete this line
+		// mode = 1;
 
-			movementPlayer = new Player(reader.getMotionCommands(),
+		if (play) {
+			reader = new Reader();
+
+			reader.readJSON(autonModes[autonMode - 1]);
+			// reader.readJSON("test");
+
+			player = new Player(reader.getMotionCommands(),
 					reader.getMotionTimes(), reader.getElevatorCommands(),
 					reader.getElevatorTimes(), sd, elevator);
-			movementPlayer.play();
+			player.play(!robotMotion);
 
 			initialTime = System.currentTimeMillis();
-			runCommands(movementPlayer);
+		}
+		for (int i = 0; i < autonModes.length; i++) {
+			SmartDashboard.putString("AutonMode[" + i + "]", autonModes[i]);
 		}
 	}
 
@@ -243,21 +271,49 @@ public class Robot extends IterativeRobot {
 	 * We use a
 	 */
 	public void autonomousPeriodic() {
-		switch (autonMode) {
-		// After every case that you don't want to repeat put autonMode=0;
-		case 0:
-			// Don't put anything in this case!
-			break;
-		case 1:
-			autonMode = 0;
-			break;
-		case 2:
-			autonMode = 0;
-			break;
-		default:
-			autonMode = 0;
-			break;
+
+		if (useBackupAuton) {
+
 		}
+
+		// switch (mode) {
+		// case 0:
+		// break;
+		// case 1:
+		// sd.move(3000,"forward", true);
+		// mode = 0;
+		// break;
+		// }
+
+		// if(System.currentTimeMillis() - 3000 < autonStartTime) {
+		// sd.driveMecanum(0, .5, 0, 1, 1, false);
+		// }
+
+		// Code that runs autonomous is called in autonomousInit
+
+		// if (play) {
+		// initialTime = System.currentTimeMillis();
+		// runCommands(movementPlayer);
+		// }
+		/*
+		 * I think this is useless at the moment switch (autonMode) { // After
+		 * every case that you don't want to repeat put autonMode=0; case 0: //
+		 * Don't put anything in this case! break; case 1: autonMode = 0; break;
+		 * case 2: autonMode = 0; break; default: autonMode = 0; break; }
+		 */
+
+		// long autonStartTime = System.currentTimeMillis();
+		// // if (System.currentTimeMillis() - autonStartTime < 2000) {
+		// // elevator.set(0.7);
+		// // } else {
+		// // elevator.set(0.0);
+		// // }
+		// if (play && System.currentTimeMillis() - autonStartTime < 5000
+		// && System.currentTimeMillis() - autonStartTime > 2000) {
+		// sd.driveMecanum(0.0, -.7, 0.0, 1.0, 1.0, true);
+		// } else {
+		// sd.driveMecanum(0.0, 0.0, 0.0, 1.0, 1.0, true);
+		// }
 	}
 
 	/**
@@ -267,35 +323,38 @@ public class Robot extends IterativeRobot {
 	public void teleopInit() {
 		if (recordingEnabled) {
 			myWriter.initializeOutput();
-			movementRecorder.initializeRecorder(myWriter.getFirstTime());
-			elevatorRecorder.initializeRecorder(myWriter.getFirstTime());
+			// movementRecorder.initializeRecorder(myWriter.getFirstTime());
+			// elevatorRecorder.initializeRecorder(myWriter.getFirstTime());
+			movementRecorder.initializeRecorder(System.currentTimeMillis());
+			elevatorRecorder.initializeRecorder(System.currentTimeMillis());
 			recordingNow = true;
 		}
 	}
 
-	public void runCommands(Player player) {
-		final int movX = 1, movY = 2, movZ = 3, movTime = 4;
-
-		// SmartDashboard.putNumber("Commands Test", player.get(0).length);
-		long firstTime = Long.parseLong(player.get(0)[movTime]), nextTime;
-		String motion[];
-
-		for (int i = 0; i < player.getLines() - 2; i++) {
-			nextTime = Long.parseLong(player.get(i + 1)[movTime]);
-
-			motion = player.get(i);
-			SmartDashboard.putString("Auton test", player.get(i)[movTime]);
-			while (System.currentTimeMillis() - initialTime < nextTime
-					- firstTime) {
-				// Motion command magnitude (-1-0-+1): x = motion[0]; y=
-				// motion[1]; z = motion[2]
-				sd.driveMecanum(Double.parseDouble(motion[movX]),
-						Double.parseDouble(motion[movY]),
-						Double.parseDouble(motion[movZ]), horizontalConstant,
-						verticalConstant, rotationConstant, true);
-			}
-		}
-	}
+	// TODO figure out if we actually need this
+	// public void runCommands(Player player) {
+	// final int movX = 1, movY = 2, movZ = 3, movTime = 4;
+	//
+	// // SmartDashboard.putNumber("Commands Test", player.get(0).length);
+	// long firstTime = Long.parseLong(player.get(0)[movTime]), nextTime;
+	// String motion[];
+	//
+	// for (int i = 0; i < player.getLines() - 2; i++) {
+	// nextTime = Long.parseLong(player.get(i + 1)[movTime]);
+	//
+	// motion = player.get(i);
+	// SmartDashboard.putString("Auton test", player.get(i)[movTime]);
+	// while (System.currentTimeMillis() - initialTime < nextTime
+	// - firstTime) {
+	// // Motion command magnitude (-1-0-+1): x = motion[0]; y=
+	// // motion[1]; z = motion[2]
+	// sd.driveMecanum(Double.parseDouble(motion[movX]),
+	// Double.parseDouble(motion[movY]),
+	// Double.parseDouble(motion[movZ]), horizontalConstant,
+	// verticalConstant, rotationConstant, true);
+	// }
+	// }
+	// }
 
 	public void teleopPeriodic() {
 		// SmartDashboard.putNumber("Is enabled",0);
@@ -329,7 +388,7 @@ public class Robot extends IterativeRobot {
 				sd.driveMecanum(movementController.getX(),
 						movementController.getY(), movementController.getZ(),
 						horizontalConstant, verticalConstant, rotationConstant,
-						true);
+						true, false, movementController.getDriveSpeedHalved());
 			}
 			// TODO make a squareInput method to avoid problems
 			elevator.set(intakeController.getElevator()
@@ -342,12 +401,37 @@ public class Robot extends IterativeRobot {
 		SmartDashboard.putNumber("Z Axis", movementController.getZ());
 
 		if (recordingEnabled) {
+			// TODO Does this work (see SingularityDrive too)
+			// movementRecorder.appendOutput(new String[] {
+			// Double.toString(movementController.getX()
+			// * Math.sqrt(horizontalConstant)),
+			// Double.toString(movementController.getY()
+			// * Math.sqrt(verticalConstant)),
+			// Double.toString(movementController.getZ()
+			// * Math.sqrt(rotationConstant)) });
+
+			// movementRecorder.appendOutput(new String[] {
+			// Double.toString(movementController.getX()
+			// * horizontalConstant),
+			// Double.toString(movementController.getY()
+			// * verticalConstant),
+			// Double.toString(movementController.getZ()
+			// * rotationConstant) });
+
+			// elevatorRecorder
+			// .appendOutput(new String[] { Double
+			// .toString(intakeController.getElevator()
+			// * elevatorConstant) });
+
 			movementRecorder.appendOutput(new String[] {
 					Double.toString(movementController.getX()),
 					Double.toString(movementController.getY()),
 					Double.toString(movementController.getZ()) });
-			elevatorRecorder.appendOutput(new String[] { Double
-					.toString(intakeController.getElevator()) });
+			elevatorRecorder
+					.appendOutput(new String[] { Double
+							.toString(intakeController.getElevator()
+									* elevatorConstant) });
+
 		}
 
 		// Avoid sending commands to the robot too quickly
@@ -356,7 +440,9 @@ public class Robot extends IterativeRobot {
 	}
 
 	public void disabledInit() {
+		SmartDashboard.putString("Disabled init","has been init'ed");
 		if (recordingEnabled && recordingNow) {
+			SmartDashboard.putString("finalizing everything","now");
 			movementRecorder.finalize();
 			elevatorRecorder.finalize();
 
@@ -370,24 +456,26 @@ public class Robot extends IterativeRobot {
 		}
 	}
 
+	public void disabledPeriodic() {
+		// SmartDashboard.putBoolean("Button String",
+		// SmartDashboard.getBoolean("DB/Button 1"));
+	}
+
 	public void testInit() {
-		if (play) {
-			movementPlayer = new Player(recordingsURL, fileType);
-			movementPlayer.dumpRecording();
-			initialTime = System.currentTimeMillis();
-			runCommands(movementPlayer);
-		}
+		/*
+		 * if (play) { movementPlayer = new Player(recordingsURL, fileType);
+		 * movementPlayer.dumpRecording(); initialTime =
+		 * System.currentTimeMillis(); runCommands(movementPlayer); }
+		 */
 	}
 
 	/**
 	 * This function is called periodically during test mode
 	 */
 	public void testPeriodic() {
-		checkToReapplyProperties();
-		if (play) {
-			initialTime = System.currentTimeMillis();
-			runCommands(movementPlayer);
-		}
+		SmartDashboard.putString("DB/String 0", "Auton Mode: " + autonMode);
+		autonMode = movementController.getAutonMode(autonMode);
+		// TODO fix this!
 	}
 
 	private void checkToReapplyProperties() {
@@ -437,7 +525,7 @@ public class Robot extends IterativeRobot {
 		cameraPort = prop.getProperty("cameraID");
 
 		// Auton properties
-		autonMode = Integer.parseInt(prop.getProperty("autonMode"));
+		autonMode = Integer.parseInt(prop.getProperty("defaultAutonMode"));
 
 		// Teleop control properties
 		driveMode = Integer.parseInt(prop.getProperty("driveMode"));
@@ -452,8 +540,8 @@ public class Robot extends IterativeRobot {
 		robotMotion = Boolean.parseBoolean(prop.getProperty("move"));
 
 		play = Boolean.parseBoolean(prop.getProperty("play"));
-		SmartDashboard.putBoolean("Step 1",
-				Boolean.parseBoolean(prop.getProperty("dumpRecording")));
+
+		recordingName = prop.getProperty("recordingName"); // not used currently
 
 		horizontalConstant = Double.parseDouble(prop
 				.getProperty("horizontalConstant"));
@@ -463,6 +551,15 @@ public class Robot extends IterativeRobot {
 				.getProperty("rotationConstant"));
 		elevatorConstant = Double.parseDouble(prop
 				.getProperty("elevatorConstant"));
+
+		for (int i = 0; i < 6; i++) {
+			autonModes[i] = prop.getProperty("autonMode" + (i + 1));
+		}
+
+		useBackupAuton = Boolean.parseBoolean(prop
+				.getProperty("useBackupAuton"));
+
+		brakeConstant = Double.parseDouble(prop.getProperty("brakeConstant"));
 
 		// movementPlayer.setDumpRecording(Boolean.parseBoolean(prop
 		// .getProperty("dumpRecording")));

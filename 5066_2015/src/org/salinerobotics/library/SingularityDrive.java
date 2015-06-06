@@ -165,6 +165,102 @@ public class SingularityDrive extends RobotDrive {
 	}
 
 	/**
+	 * Drive mecanum using three inputs
+	 * 
+	 * @param x
+	 *            Horizontal translation magnitude
+	 * @param y
+	 *            Vertical translation magnitude
+	 * @param z
+	 *            Rotation magnitude
+	 * @param horizontalTranslationMultiplier
+	 *            What proportion of the horizontal input to use
+	 * @param verticalTranslationMultiplier
+	 *            What proportion of the vertical input to use
+	 * @param rotationMultiplier
+	 *            What proportion of the rotaional input to use
+	 * @param squaredInputs
+	 *            Whether or not to square inputs in order to allow for precise
+	 *            movements
+	 * @param simulate
+	 *            {@literal true} to only put data into SmartDashboard.
+	 *            {@literal false} to actually drive
+	 */
+	public void driveMecanum(double x, double y, double z,
+			double horizontalTranslationMultiplier,
+			double verticalTranslationMultiplier, double rotationMultiplier,
+			boolean squaredInputs, boolean simulate, boolean halveDriveSpeed) {
+		
+		if(halveDriveSpeed) {
+		verticalTranslationMultiplier /= 2;
+		horizontalTranslationMultiplier = 0.7;
+		rotationMultiplier /=2;
+		}
+
+		double translationMagnitude, direction, maximum, rotationMagnitude;
+
+		// If squaredInputs square the inputs
+		if (squaredInputs) {
+			x *= Math.abs(x);
+			y *= Math.abs(y);
+			z *= Math.abs(z);
+		}
+
+		// Find magnitudes and direction using pythagorean theorem and atan2
+		translationMagnitude = Math.sqrt(Math.pow(x
+				* horizontalTranslationMultiplier, 2)
+				+ Math.pow(y * verticalTranslationMultiplier, 2));
+		rotationMagnitude = z * rotationMultiplier;
+
+		// TODO See if this works (See Robot.java too) 
+		// direction = Math.PI
+		// / 4
+		// + Math.atan2(y * verticalTranslationMultiplier, x
+		// * horizontalTranslationMultiplier);
+		direction = Math.PI / 4 + Math.atan2(y, x);
+
+		// Account for too high of inputs (cannot have a motor go at 2.0 speed)
+		maximum = Math
+				.max(Math.max(Math.abs(Math.sin(direction)),
+						Math.abs(Math.cos(direction)))
+						* translationMagnitude + Math.abs(rotationMagnitude), 1);
+
+		if (simulate) {
+			SmartDashboard
+					.putNumber("Front Right Motor Speed", (translationMagnitude
+							* Math.cos(direction) + rotationMagnitude)
+							/ maximum);
+			SmartDashboard
+					.putNumber("Rear Right Motor Speed", (translationMagnitude
+							* -Math.sin(direction) + rotationMagnitude)
+							/ maximum);
+			SmartDashboard
+					.putNumber("Front Left Motor Speed", (translationMagnitude
+							* Math.sin(direction) + rotationMagnitude)
+							/ maximum);
+			SmartDashboard
+					.putNumber("Rear Left Motor Speed", (translationMagnitude
+							* -Math.cos(direction) + rotationMagnitude)
+							/ maximum);
+		} else {
+			// Use formulas to set wheel speeds. See the GitHub wiki for more
+			// information
+			m_frontRightMotor
+					.set((translationMagnitude * Math.cos(direction) + rotationMagnitude)
+							/ maximum);
+			m_rearRightMotor
+					.set((translationMagnitude * -Math.sin(direction) + rotationMagnitude)
+							/ maximum);
+			m_frontLeftMotor
+					.set((translationMagnitude * Math.sin(direction) + rotationMagnitude)
+							/ maximum);
+			m_rearLeftMotor
+					.set((translationMagnitude * -Math.cos(direction) + rotationMagnitude)
+							/ maximum);
+		}
+	}
+
+	/**
 	 * Translate at a certain magnitude and direction
 	 * 
 	 * @param magnitude

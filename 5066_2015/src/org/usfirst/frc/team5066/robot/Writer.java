@@ -35,9 +35,8 @@ public class Writer {
 	 * @param fileType
 	 *            Type of file (csv or json)
 	 */
-	public Writer(String fileName, String fileType) {
+	public Writer(String fileType) {
 		initialized = false;
-		this.outputURL = fileName;
 		this.fileType = fileType;
 	}
 
@@ -46,6 +45,10 @@ public class Writer {
 	 */
 	public void initializeOutput() {
 		try {
+			firstTime = System.currentTimeMillis();
+			outputURL = "/recordings/recording"
+					+ (new SimpleDateFormat("yyyy-MM-dd_HH-mm-ss-SSS"))
+							.format(new Date()) + "." + fileType;
 			fileWriter = new FileWriter(outputURL, true);
 			printWriter = new PrintWriter(fileWriter);
 			initialized = true;
@@ -63,7 +66,6 @@ public class Writer {
 			SmartDashboard.putString("Opened", "");
 			SmartDashboard.putString("Cannot open", outputURL);
 		}
-		firstTime = System.currentTimeMillis();
 	}
 
 	/**
@@ -93,10 +95,10 @@ public class Writer {
 		 * printWriter.println("\t \"actions\" : [");
 		 */
 
-		printWriter.println("{\"recording\""
-				+ (new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS"))
-						.format(new Date()));
-		printWriter.println("\t{\"startTime\" : " + System.currentTimeMillis()
+		// printWriter.println("{\"time : "
+		// + (new SimpleDateFormat("yyyy/MM/dd:HH:mm:ss.SSS"))
+		// .format(new Date()) + ",");
+		printWriter.println("{\"startTime\" : " + System.currentTimeMillis()
 				+ ",");
 	}
 
@@ -110,12 +112,12 @@ public class Writer {
 	 */
 	public void writeQueue(String key, ArrayList<String> queue) {
 		if (fileType.equals(JSON))
-			printWriter.println("\t " + key + " : [");
+			printWriter.println("\t\"" + key + "\" : [");
 		for (String str : queue) {
 			printWriter.println(str);
 		}
 		if (fileType.equals(JSON))
-			printWriter.println("\t ]");
+			printWriter.println("\t ],");
 	}
 
 	/**
@@ -125,8 +127,6 @@ public class Writer {
 		if (initialized) {
 			try {
 				if (fileType.equals(JSON)) {
-					// TODO Format like the example in notepad++
-
 					/*
 					 * printWriter.println("\t\t\t{\"null\":[],\"time\" : " +
 					 * (System.currentTimeMillis() - firstTime) + "}");
@@ -134,7 +134,8 @@ public class Writer {
 					 */
 
 					printWriter.println("\t \"duration\" : "
-							+ (firstTime - System.currentTimeMillis()));
+							+ (System.currentTimeMillis() - firstTime));
+					printWriter.println("}");
 				} else {
 					printWriter.println("null,"
 							+ (System.currentTimeMillis() - firstTime));
@@ -142,8 +143,10 @@ public class Writer {
 
 				printWriter.close();
 				fileWriter.close();
+				SmartDashboard.putString("Finished writing?", "Yes, wrote" + outputURL);
 			} catch (IOException e) {
 				e.printStackTrace();
+				SmartDashboard.putString("Writing Error", "yeah...");
 			}
 		}
 	}

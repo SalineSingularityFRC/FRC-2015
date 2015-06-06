@@ -24,8 +24,7 @@ public class Player {
 	private Elevator elevator;
 
 	public Player(ArrayList<String[]> motionCommands,
-			ArrayList<Long> motionTimes,
-			ArrayList<String[]> elevatorCommands,
+			ArrayList<Long> motionTimes, ArrayList<String[]> elevatorCommands,
 			ArrayList<Long> elevatorTimes, SingularityDrive drive,
 			Elevator elevator) {
 		this.motionCommands = motionCommands;
@@ -39,7 +38,7 @@ public class Player {
 
 	public String[] getCommandAtTime(ArrayList<String[]> commands,
 			ArrayList<Long> times, long time) {
-		for (int i = (int) time; i < times.size(); i++) {
+		for (int i = 0; i < times.size(); i++) {
 			if (times.get(i) > time) {
 				return commands.get(i);
 			}
@@ -53,22 +52,30 @@ public class Player {
 		return toReturn;
 	}
 
-	public void play() {
+	public void play(boolean simulate) {
 		String[] currentMotionCommands, currentElevatorCommands;
-		long startTime = System.currentTimeMillis(), finalTime = motionTimes.get(motionTimes.size() - 1) + startTime;
+		long startTime = System.currentTimeMillis(), finalTime = motionTimes
+				.get(motionTimes.size() - 1) + startTime;
 
 		while (System.currentTimeMillis() < finalTime) {
 			currentMotionCommands = getCommandAtTime(motionCommands,
 					motionTimes, System.currentTimeMillis() - startTime);
 			currentElevatorCommands = getCommandAtTime(elevatorCommands,
 					elevatorTimes, System.currentTimeMillis() - startTime);
+			// drive.driveMecanum(Double.parseDouble(currentMotionCommands[0]),
+			// Double.parseDouble(currentMotionCommands[1]),
+			// Double.parseDouble(currentMotionCommands[2]), 1, 1, 1,
+			// true, simulate, false);
+			// elevator.set(Double.parseDouble(currentElevatorCommands[0]),
+			// simulate);
 
 			drive.driveMecanum(Double.parseDouble(currentMotionCommands[0]),
 					Double.parseDouble(currentMotionCommands[1]),
 					Double.parseDouble(currentMotionCommands[2]),
 					Robot.horizontalConstant, Robot.verticalConstant,
-					Robot.rotationConstant, true);
-			elevator.set(Double.parseDouble(currentElevatorCommands[0]));
+					Robot.rotationConstant, true, simulate, false);
+			elevator.set(Double.parseDouble(currentElevatorCommands[0]),
+					simulate);
 		}
 	}
 
@@ -128,88 +135,6 @@ public class Player {
 		}
 		SmartDashboard.putString("Player", "Playback file sucessfully loaded");
 		SmartDashboard.putBoolean("Dump Recording?", dumpRecording);
-	}
-
-	public void setDumpRecording(boolean dump) {
-		dumpRecording = dump;
-	}
-
-	public void dumpRecording() {
-		if (dumpRecording) {
-			SmartDashboard.putString("Recording Dump",
-					motionCommands.toString());
-		}
-	}
-
-	public String[] get(int index) {
-		try {
-			return motionCommands.get(index);
-		} catch (IndexOutOfBoundsException ioobe) {
-			return new String[] { "U R FAILURE" };
-		}
-	}
-
-	public String[] get(int index, int type) {
-		try {
-			return motionCommands.get(index);
-		} catch (IndexOutOfBoundsException ioobe) {
-			return new String[] { "U R FAILURE" };
-		}
-	}
-
-	public double get(long time, int valueToGet, boolean restartSearch) {
-		String[] current;
-
-		if (restartSearch) {
-			currentIndex = 0;
-		}
-
-		if (fileType.equals(Recorder.CSV)) {
-			switch (valueToGet) {
-			case MOTION_X:
-				for (int i = currentIndex; i < motionCommands.size(); i++) {
-					current = motionCommands.get(i);
-					if (Integer.parseInt(current[current.length - 1]) > time) {
-						currentIndex = i;
-						return Double.parseDouble(current[MOTION_X_INDEX]);
-					}
-				}
-				return 0.0;
-			case MOTION_Y:
-				for (int i = currentIndex; i < elevatorCommands.size(); i++) {
-					current = elevatorCommands.get(i);
-					if (Integer.parseInt(current[current.length - 1]) > time) {
-						currentIndex = i;
-						return Double.parseDouble(current[MOTION_Y_INDEX]);
-					}
-				}
-				return 0.0;
-			case MOTION_Z:
-				for (int i = currentIndex; i < elevatorCommands.size(); i++) {
-					current = elevatorCommands.get(i);
-					if (Integer.parseInt(current[current.length - 1]) > time) {
-						currentIndex = i;
-						return Double.parseDouble(current[MOTION_Z_INDEX]);
-					}
-				}
-				return 0.0;
-			case ELEVATOR:
-				for (int i = currentIndex; i < elevatorCommands.size(); i++) {
-					current = elevatorCommands.get(i);
-					if (Integer.parseInt(current[current.length - 1]) > time) {
-						currentIndex = i;
-						return Double.parseDouble(current[ELEVATOR_INDEX]);
-					}
-				}
-				return 0.0;
-			default:
-				return 0.0;
-			}
-		} else {
-			// See
-		}
-
-		return 0;
 	}
 
 	public int getLines() {

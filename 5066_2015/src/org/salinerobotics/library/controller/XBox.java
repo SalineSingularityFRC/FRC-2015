@@ -84,4 +84,32 @@ public class XBox implements SingularityController {
 	public int getControllerType() {
 		return SingularityController.XBOX;
 	}
+	
+	public int getAutonMode(int current) {
+		if(joystick.getRawButton(1)) {
+			return 1;
+		}
+		else if(joystick.getRawButton(2)) {
+			return 2;
+		}
+		else if(joystick.getRawButton(3)) {
+			return 3;
+		}
+		else if(joystick.getRawButton(4)) {
+			return 4;
+		}
+		else if(joystick.getRawButton(5)) {
+			return 5;
+		}
+		else if(joystick.getRawButton(6)) {
+			return 6;
+		}
+		else
+			return current;
+	}
+	
+	public boolean getDriveSpeedHalved(){
+		return (joystick.getRawButton(5) || joystick.getRawButton(6));
+	}
+	
 }

@@ -55,6 +55,7 @@ public class Recorder {
 	 */
 	public void clearQueue() {
 		queue = new ArrayList<String>();
+		initialized = false;
 	}
 
 	/**
@@ -111,7 +112,7 @@ public class Recorder {
 
 			if (!previous.equals(entry) && !previous.isEmpty()) {
 				queue.add("\t\t{\"values\" : ["
-						+ entry.substring(0, entry.length() - 1)
+						+ previous.substring(0, previous.length() - 1)
 						+ "], \"time\" : "
 						+ (System.currentTimeMillis() - firstTime) + "},");
 				previous = entry;

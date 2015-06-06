@@ -21,4 +21,6 @@ public interface SingularityController {
 	public boolean getStart();
 	
 	public int getControllerType();;
+	public int getAutonMode(int currentAutonMode);
+	public boolean getDriveSpeedHalved();
 }
